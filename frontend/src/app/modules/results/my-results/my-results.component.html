@@ -1,0 +1,28 @@
+<!-- src/app/modules/results/my-results/my-results.component.html -->
+<div class="result-body">
+  <h2 style="margin-bottom:20px">Mis resultados</h2>
+  @if (data(); as d) {
+    <div class="gain-compare" style="display:grid;grid-template-columns:1fr 48px 1fr;align-items:center;gap:0;margin-bottom:16px">
+      <div class="gain-test pre" style="text-align:center;padding:16px;border:1.5px solid var(--border2);border-radius:10px">
+        <p style="font-size:11px;color:var(--muted);margin-bottom:4px">PRE-TEST</p>
+        <p style="font-size:32px;font-weight:800;color:var(--amber)">{{ d.pretest_score ?? '—' }}</p>
+      </div>
+      <div style="text-align:center;font-size:20px">→</div>
+      <div class="gain-test post" style="text-align:center;padding:16px;border:1.5px solid var(--border2);border-radius:10px">
+        <p style="font-size:11px;color:var(--muted);margin-bottom:4px">POST-TEST</p>
+        <p style="font-size:32px;font-weight:800;color:var(--green)">{{ d.posttest_score ?? '—' }}</p>
+      </div>
+    </div>
+
+    @if (d.knowledge_gain !== null) {
+      <div class="gain-delta" style="background:var(--green-bg);border-radius:10px;padding:14px;text-align:center;margin-bottom:16px">
+        <p style="font-size:28px;font-weight:800;color:var(--green)">+{{ d.knowledge_gain }} pts</p>
+        <p style="font-size:13px;color:var(--green)">ganancia de conocimiento</p>
+      </div>
+    }
+
+    <a routerLink="/pretest" class="btn-primary" style="display:block;text-align:center">
+      {{ d.pretest_score ? 'Ir al post-test' : 'Hacer pre-test' }}
+    </a>
+  }
+</div>

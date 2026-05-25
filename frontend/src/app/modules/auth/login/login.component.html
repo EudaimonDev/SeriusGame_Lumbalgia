@@ -1,0 +1,255 @@
+<div class="rpg-root">
+
+  <div class="rpg-bg"></div>
+  <div class="rpg-overlay"></div>
+  <button class="rpg-mute-btn" (click)="toggleMute()"
+          [title]="muted ? 'Activar sonido' : 'Silenciar'">
+    {{ muted ? '🔇' : '🔊' }}
+  </button>
+
+  <!-- Modal ¿Cómo jugar? -->
+  @if (showHowToPlay()) {
+    <div class="rpg-modal-backdrop" (click)="showHowToPlay.set(false)">
+      <div class="rpg-modal" (click)="$event.stopPropagation()">
+        <div class="rpg-modal__header">
+          <p class="rpg-modal__title">📖 {{ 'howto.title' | transloco }}</p>
+          <button class="rpg-modal__close" (click)="showHowToPlay.set(false)">✕</button>
+        </div>
+        <div class="rpg-modal__body">
+          <div class="rpg-modal__step">
+            <span class="rpg-modal__step-num">01</span>
+            <div>
+              <p class="rpg-modal__step-title">{{ 'howto.step1_title' | transloco }}</p>
+              <p class="rpg-modal__step-desc">{{ 'howto.step1_desc' | transloco }}</p>
+            </div>
+          </div>
+          <div class="rpg-modal__step">
+            <span class="rpg-modal__step-num">02</span>
+            <div>
+              <p class="rpg-modal__step-title">{{ 'howto.step2_title' | transloco }}</p>
+              <p class="rpg-modal__step-desc">{{ 'howto.step2_desc' | transloco }}</p>
+            </div>
+          </div>
+          <div class="rpg-modal__step">
+            <span class="rpg-modal__step-num">03</span>
+            <div>
+              <p class="rpg-modal__step-title">{{ 'howto.step3_title' | transloco }}</p>
+              <p class="rpg-modal__step-desc">{{ 'howto.step3_desc' | transloco }}</p>
+            </div>
+          </div>
+          <div class="rpg-modal__step">
+            <span class="rpg-modal__step-num">04</span>
+            <div>
+              <p class="rpg-modal__step-title">{{ 'howto.step4_title' | transloco }}</p>
+              <p class="rpg-modal__step-desc">{{ 'howto.step4_desc' | transloco }}</p>
+            </div>
+          </div>
+          <div class="rpg-modal__step">
+            <span class="rpg-modal__step-num">05</span>
+            <div>
+              <p class="rpg-modal__step-title">{{ 'howto.step5_title' | transloco }}</p>
+              <p class="rpg-modal__step-desc">{{ 'howto.step5_desc' | transloco }}</p>
+            </div>
+          </div>
+          <div class="rpg-modal__tip">
+            💡 <strong>{{ langSvc.currentLang() === 'es' ? 'Consejo:' : 'Tip:' }}</strong>
+            {{ 'howto.tip' | transloco }}
+          </div>
+        </div>
+        <button class="rpg-modal__btn" (click)="showHowToPlay.set(false)">
+          {{ 'howto.btn_understood' | transloco }}
+        </button>
+      </div>
+    </div>
+  }
+  <!-- Modal Ranking -->
+  @if (showRanking()) {
+    <div class="rpg-modal-backdrop" (click)="showRanking.set(false)">
+      <div class="rpg-modal" (click)="$event.stopPropagation()">
+        <div class="rpg-modal__header">
+          <p class="rpg-modal__title">🏆 {{ 'login.top3' | transloco }}</p>
+          <button class="rpg-modal__close" (click)="showRanking.set(false)">✕</button>
+        </div>
+        <div class="rpg-modal__body">
+          @if (top3().length === 0) {
+            <p style="color:rgba(255,255,255,0.4);text-align:center;font-size:13px;padding:20px 0">
+              {{ 'login.top3_empty' | transloco }}
+            </p>
+          } @else {
+            @for (item of top3(); track item.id) {
+              <div class="rpg-ranking-row">
+                <span class="rpg-ranking-row__medal">{{ getMedal(item.position) }}</span>
+                <span class="rpg-ranking-row__name">{{ item.name }}</span>
+                <div class="rpg-ranking-row__stats">
+                  <span class="rpg-ranking-row__pts">{{ item.puntos_totales }} pts</span>
+                  <span class="rpg-ranking-row__pct"
+                        [style.color]="item.precision >= 80 ? '#4ade80' :
+                                       item.precision >= 60 ? '#fbbf24' : '#f87171'">
+                    {{ item.precision }}%
+                  </span>
+                </div>
+              </div>
+            }
+          }
+        </div>
+        <button class="rpg-modal__btn" (click)="showRanking.set(false)">
+          {{ 'login.btn_start' | transloco }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Contenido centrado -->
+  <div class="rpg-content">
+
+    <div class="rpg-dialog-box">
+      <p class="rpg-dialog-title">{{ 'dialog.title' | transloco }}</p>
+      <p class="rpg-dialog-sub">{{ 'dialog.sub' | transloco }}</p>
+    </div>
+
+    <div class="rpg-form-wrapper">
+      <img src="columna_1.png" alt="Columna vertebral" class="rpg-columna">
+
+      <div class="rpg-form-panel">
+
+        <!-- Header con botón de idioma -->
+        <div class="rpg-form-header">
+          <div style="flex:1">
+            <p class="rpg-form-header__title">LumbalgiaSG</p>
+            <p class="rpg-form-header__sub">Serious Game</p>
+          </div>
+        </div>
+
+        <!-- MODO LIBRE -->
+        @if (!showRoomForm()) {
+
+          @if (error) {
+            <div class="rpg-alert">{{ error }}</div>
+          }
+
+          <form [formGroup]="form" (ngSubmit)="submit()" class="rpg-form">
+
+            <div class="rpg-field">
+              <label class="rpg-field__label">
+                <span>👤</span> {{ 'login.name_label' | transloco }}
+              </label>
+              <input type="text" formControlName="name"
+                     class="rpg-field__input"
+                     [placeholder]="'login.name_placeholder' | transloco"
+                     maxlength="50"
+                     (keypress)="soloLetras($event)"
+                     (paste)="$event.preventDefault()">
+            </div>
+
+            <div class="rpg-field">
+              <label class="rpg-field__label">
+                <span>🎂</span> {{ 'login.age_label' | transloco }}
+              </label>
+              <input type="text" formControlName="age"
+                     class="rpg-field__input"
+                     [placeholder]="'login.age_placeholder' | transloco"
+                     maxlength="2"
+                     (keypress)="soloNumeros($event)"
+                     (paste)="$event.preventDefault()">
+              @if (form.get('age')?.invalid && form.get('age')?.touched) {
+                <span class="rpg-field__error">{{ 'login.age_error' | transloco }}</span>
+              }
+            </div>
+
+            <button type="submit" class="rpg-btn-primary" [disabled]="loading">
+              @if (loading) { <span class="rpg-spinner"></span> } @else { ❤️ }
+              {{ 'login.btn_start' | transloco }}
+            </button>
+
+            <button type="button" class="rpg-btn-room" (click)="showRoomForm.set(true)">
+              🏠 {{ 'login.btn_room' | transloco }}
+            </button>
+
+            <button type="button" class="rpg-btn-howto" (click)="showHowToPlay.set(true)">
+              📖 {{ 'login.btn_howto' | transloco }}
+            </button>
+
+            <!-- Botón idioma aquí -->
+            <button type="button" class="rpg-btn-lang" (click)="langSvc.toggle()">
+            <img [src]="langSvc.currentLang() === 'es' ? 'flag-us.png' : 'flag-es.png'"
+                style="width:20px;height:14px;object-fit:cover;border-radius:2px;margin-right:6px">
+            {{ 'login.btn_lang' | transloco }}
+          </button>
+
+          </form>
+        }
+
+        <!-- MODO SALA -->
+        @if (showRoomForm()) {
+          <div class="rpg-room-header">
+            <button class="rpg-back-btn" (click)="showRoomForm.set(false)">
+              {{ 'login.btn_back' | transloco }}
+            </button>
+            <p class="rpg-room-title">🏠 {{ 'login.room_title' | transloco }}</p>
+          </div>
+
+          @if (roomError) {
+            <div class="rpg-alert">{{ roomError }}</div>
+          }
+
+          <form [formGroup]="roomForm" (ngSubmit)="submitRoom()" class="rpg-form">
+            <div class="rpg-field">
+              <label class="rpg-field__label">
+                <span>👤</span> {{ 'login.name_label' | transloco }}
+              </label>
+              <input type="text" formControlName="name"
+                     class="rpg-field__input"
+                     [placeholder]="'login.name_placeholder' | transloco"
+                     maxlength="50"
+                     (keypress)="soloLetras($event)"
+                     (paste)="$event.preventDefault()">
+            </div>
+            <div class="rpg-field">
+              <label class="rpg-field__label">
+                <span>🔑</span> {{ 'login.room_code_label' | transloco }}
+              </label>
+              <input type="text" formControlName="code"
+                     class="rpg-field__input rpg-field__input--code"
+                     [placeholder]="'login.room_code_placeholder' | transloco"
+                     maxlength="20"
+                     style="text-transform: uppercase;"
+                     (input)="roomForm.patchValue({ code: $any($event.target).value.toUpperCase() })">
+            </div>
+            <button type="submit" class="rpg-btn-primary" [disabled]="roomLoading">
+              @if (roomLoading) { <span class="rpg-spinner"></span> } @else { 🏠 }
+              {{ 'login.btn_join' | transloco }}
+            </button>
+          </form>
+        }
+
+        <div class="rpg-links">
+          <button type="button" class="rpg-btn-ranking" (click)="showRanking.set(true)">
+            🏆 {{ 'login.btn_ranking' | transloco }}
+          </button>
+          <a routerLink="/admin/login" class="rpg-link">
+            🔐 {{ 'login.btn_admin' | transloco }}
+          </a>
+        </div>
+
+        <p class="rpg-footer">{{ 'login.footer' | transloco }}</p>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Top 3 overlay -->
+  <div class="rpg-top3">
+    <p class="rpg-top3__title">🏆 {{ 'login.top3' | transloco }}</p>
+    @for (item of top3(); track item.id) {
+      <div class="rpg-top3__item">
+        <span class="rpg-top3__medal">{{ getMedal(item.position) }}</span>
+        <span class="rpg-top3__name">{{ item.name }}</span>
+        <span class="rpg-top3__pts">{{ item.puntos_totales }}</span>
+      </div>
+    }
+    @if (top3().length === 0) {
+      <p class="rpg-top3__empty">{{ 'login.top3_empty' | transloco }}</p>
+    }
+  </div>
+
+</div>

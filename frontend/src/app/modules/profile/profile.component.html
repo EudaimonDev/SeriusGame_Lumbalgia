@@ -1,0 +1,99 @@
+<!-- src/app/modules/profile/profile.component.html -->
+@if (loading()) {
+  <div class="loading-center">Cargando perfil...</div>
+} @else if (profile(); as p) {
+  <div class="profile-body">
+
+    <!-- Header del perfil -->
+    <div class="profile-header">
+      <div class="profile-avatar">
+        {{ p.user.name.charAt(0).toUpperCase() }}
+      </div>
+      <div class="profile-header__info">
+        <h2 class="profile-header__name">{{ p.user.name.toUpperCase() }}</h2>
+        <p class="profile-header__sub">Perfil de Jugador · {{ p.user.age }} años</p>
+      </div>
+    </div>
+
+    <!-- Stats principales -->
+    <div class="profile-stats">
+      <div class="profile-stat">
+        <p class="profile-stat__val">{{ p.stats.total_games }}</p>
+        <p class="profile-stat__lbl">Total partidas</p>
+      </div>
+      <div class="profile-stat">
+        <p class="profile-stat__val">{{ p.stats.best_score }}</p>
+        <p class="profile-stat__lbl">Puntos auto</p>
+      </div>
+      <div class="profile-stat">
+        <p class="profile-stat__val">{{ p.stats.precision }}%</p>
+        <p class="profile-stat__lbl">Precisión</p>
+      </div>
+      <div class="profile-stat">
+        <p class="profile-stat__val">{{ p.stats.total_score }}</p>
+        <p class="profile-stat__lbl">Puntaje total</p>
+      </div>
+    </div>
+
+    <!-- Dificultad promedio -->
+    <div class="profile-card">
+      <p class="profile-card__title">Tiempo de respuesta promedio</p>
+      <p class="profile-card__val">{{ p.stats.avg_time_sec }}s</p>
+    </div>
+
+    <!-- Errores -->
+    @if (p.errors.length > 0) {
+      <div class="profile-card profile-card--errors">
+        <p class="profile-card__title">
+          <span class="profile-card__title-dot"></span>
+          Tus errores
+        </p>
+        @for (e of p.errors; track e.question_text) {
+          <div class="error-item">
+            <p class="error-item__question">{{ e.question_text }}</p>
+            <p class="error-item__wrong">✗ {{ e.selected_answer.toUpperCase() }}</p>
+            <p class="error-item__correct">✓ {{ e.correct_answer.toUpperCase() }} — {{ e.feedback_text }}</p>
+            <span class="error-item__cat">{{ e.category_name }}</span>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Desempeño por categoría -->
+    @if (p.categories.length > 0) {
+      <div class="profile-card">
+        <p class="profile-card__title">Desempeño por categoría</p>
+        <div class="category-stats">
+          @for (cat of p.categories; track cat.category) {
+            <div class="category-stat-item">
+              <div class="category-stat-item__header">
+                <span class="category-stat-item__name">{{ cat.category }}</span>
+                <span class="category-stat-item__count">{{ cat.total }} preguntas</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill"
+                     [style.width.%]="cat.precision">
+                </div>
+              </div>
+              <div class="category-stat-item__footer">
+                <span class="category-stat-item__pct">{{ cat.precision }}%</span>
+                <span class="category-stat-item__time">{{ cat.avg_time }}s</span>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Botones -->
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <a routerLink="/game" class="btn-primary" style="flex:1;text-align:center;text-decoration:none;padding:12px">
+        🎮 Jugar de nuevo
+      </a>
+      <a routerLink="/dashboard" class="btn-secondary" style="flex:1;text-align:center">
+        Volver al inicio
+      </a>
+    </div>
+
+  </div>
+}

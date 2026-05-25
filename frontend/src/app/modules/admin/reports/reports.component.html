@@ -1,0 +1,22 @@
+<!-- src/app/modules/admin/reports/reports.component.html -->
+<div class="report-body">
+  <div class="report-header-row">
+    <h2>Reporte del experimento</h2>
+  </div>
+  @if (report(); as r) {
+    <div class="group-compare">
+      <div class="group-card experimental">
+        <p class="gc-title">Grupo experimental</p>
+        <div class="gc-row"><span>Pre-test promedio</span><span class="gc-val">{{ r.experimental.pretest?.avg_score ?? '—' }}%</span></div>
+        <div class="gc-row"><span>Post-test promedio</span><span class="gc-val">{{ r.experimental.posttest?.avg_score ?? '—' }}%</span></div>
+        <div class="gc-row"><span>Ganancia</span><span class="gc-val">{{ r.experimental.gain !== null ? '+' + r.experimental.gain : '—' }} pts</span></div>
+      </div>
+      <div class="group-card control">
+        <p class="gc-title">Grupo control</p>
+        <div class="gc-row"><span>Pre-test promedio</span><span class="gc-val">{{ r.control.pretest?.avg_score ?? '—' }}%</span></div>
+        <div class="gc-row"><span>Post-test promedio</span><span class="gc-val">{{ r.control.posttest?.avg_score ?? '—' }}%</span></div>
+        <div class="gc-row"><span>Ganancia</span><span class="gc-val">{{ r.control.gain !== null ? '+' + r.control.gain : '—' }} pts</span></div>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,31 @@
+@if (loading()) {
+  <div class="loading-center">Cargando pre-test...</div>
+} @else {
+  <div class="test-body">
+    <div class="test-header">
+      <h2>Pre-test</h2>
+      <div class="progress-track">
+        <div class="progress-fill" [style.width.%]="progress"></div>
+      </div>
+      <span class="progress-label">{{ answered() }} / {{ total() }}</span>
+    </div>
+
+    <div class="question-card">
+      <div class="q-meta">
+        <span class="q-num">Pregunta {{ answered() + 1 }}</span>
+      </div>
+      <p class="q-text">{{ question()?.question_text }}</p>
+      <div class="options">
+        @for (opt of ['a','b','c','d']; track opt) {
+          <div class="option"
+               [class.selected]="selected() === opt"
+               [class.disabled]="!!selected()"
+               (click)="select(opt)">
+            <span class="opt-letter">{{ opt.toUpperCase() }}</span>
+            {{ getOption(opt) }}
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,13 @@
+{
+    "name": "lumbalgia/backend",
+    "authors": [
+        {
+            "name": "Austin Salguero",
+            "email": "austinsalguero08@gmail.com"
+        }
+    ],
+    "require": {
+        "firebase/php-jwt": "^7.0",
+        "phpmailer/phpmailer": "^7.0"
+    }
+}

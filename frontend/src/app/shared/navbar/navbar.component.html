@@ -1,0 +1,25 @@
+@if (auth.isLoggedIn() && showNav) {
+  <nav class="app-nav">
+    <span class="logo" routerLink="/dashboard">LumbalgiaSG</span>
+
+    @if (auth.isStudent()) {
+      <a routerLink="/game"    routerLinkActive="active">{{ 'nav.play' | transloco }}</a>
+      <a routerLink="/profile" routerLinkActive="active">{{ 'nav.profile' | transloco }}</a>
+    }
+
+    @if (auth.isAdmin()) {
+      <a routerLink="/dashboard"       routerLinkActive="active">{{ 'nav.home' | transloco }}</a>
+      <a routerLink="/admin/questions" routerLinkActive="active">{{ 'nav.questions' | transloco }}</a>
+      <a routerLink="/admin/rooms"     routerLinkActive="active">{{ 'nav.rooms' | transloco }}</a>
+      <a routerLink="/admin/config"    routerLinkActive="active">{{ 'nav.config' | transloco }}</a>
+      <a routerLink="/admin/reports"   routerLinkActive="active">{{ 'nav.reports' | transloco }}</a>
+    }
+
+    <button class="nav-lang-btn" (click)="langSvc.toggle()">
+      {{ langSvc.currentLang() === 'es' ? '🇺🇸 EN' : '🇪🇸 ES' }}
+    </button>
+
+    <button class="btn-logout" (click)="auth.logout()">{{ 'nav.logout' | transloco }}</button>
+    <div class="nav-avatar">{{ auth.currentUser()?.name?.charAt(0) }}</div>
+  </nav>
+}

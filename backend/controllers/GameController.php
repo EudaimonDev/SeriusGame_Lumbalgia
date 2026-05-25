@@ -1,0 +1,234 @@
+<?php
+
+require_once __DIR__ . '/../models/QuestionModel.php';
+require_once __DIR__ . '/../models/SessionModel.php';
+require_once __DIR__ . '/../models/AnswerModel.php';
+require_once __DIR__ . '/../models/UserModel.php';
+require_once __DIR__ . '/../models/GameConfigModel.php';
+require_once __DIR__ . '/../services/AdaptiveEngine.php';
+
+class GameController {
+
+    private QuestionModel   $questionModel;
+    private SessionModel    $sessionModel;
+    private AnswerModel     $answerModel;
+    private GameConfigModel $configModel;
+
+    public function __construct() {
+        $this->questionModel = new QuestionModel();
+        $this->sessionModel  = new SessionModel();
+        $this->answerModel   = new AnswerModel();
+        $this->configModel   = new GameConfigModel();
+    }
+
+    /**
+     * POST /api/game/start
+     */
+    public function start(Request $request, array $payload): void {
+        $userId      = $payload['sub'];
+        $sessionType = $request->input('session_type', 'game');
+
+        $validTypes = ['pretest', 'game', 'posttest'];
+        if (!in_array($sessionType, $validTypes, true)) {
+            Response::error('Tipo de sesión inválido');
+        }
+
+        $config    = $this->configModel->get();
+        $sessionId = $this->sessionModel->create($userId, $sessionType);
+        $question  = $this->getNextQuestion($sessionId, 'easy', []);
+
+        if (!$question) {
+            Response::error('No hay preguntas disponibles', 500);
+        }
+
+        Response::success([
+            'session_id' => $sessionId,
+            'question'   => $this->formatQuestion($question),
+            'config'     => [
+                'lives'        => (int) $config['lives'],
+                'questions'    => (int) $config['questions'],
+                'time_seconds' => (int) $config['time_seconds'],
+            ],
+        ], 'Sesión iniciada');
+    }
+
+    /**
+     * POST /api/game/answer
+     */
+    public function answer(Request $request, array $payload): void {
+        $sessionId      = (int) $request->input('session_id');
+        $questionId     = (int) $request->input('question_id');
+        $selectedAnswer = strtolower(trim($request->input('selected_answer', '')));
+        $responseTime   = (int) $request->input('response_time_ms', 0);
+
+        if (!$sessionId || !$questionId) {
+            Response::error('Faltan parámetros requeridos');
+        }
+
+        // Detectar timeout ANTES de validar
+        $isTimeout = ($selectedAnswer === 'timeout' || $selectedAnswer === '');
+        if ($isTimeout) {
+            $selectedAnswer = 'a';
+        }
+
+        $session  = $this->sessionModel->findById($sessionId);
+        $question = $this->questionModel->findById($questionId);
+
+        if (!$session || !$question) {
+            Response::notFound('Sesión o pregunta no encontrada');
+        }
+
+        if ($session['user_id'] !== $payload['sub']) {
+            Response::forbidden();
+        }
+
+        $config = $this->configModel->get();
+
+        // Si es timeout SIEMPRE es incorrecto
+        $isCorrect = $isTimeout ? false : ($selectedAnswer === $question['correct_answer']);
+
+        // Calcular puntos
+        $points = 0;
+        if ($isCorrect) {
+            $points = (int) $config['points_correct'];
+            $halfTime = ($config['time_seconds'] * 1000) / 2;
+            if ($responseTime < $halfTime) {
+                $points += (int) $config['points_bonus'];
+            }
+        }
+
+        // Registrar respuesta
+        $this->answerModel->record([
+            'session_id'        => $sessionId,
+            'question_id'       => $questionId,
+            'selected_answer'   => $selectedAnswer,
+            'is_correct'        => $isCorrect,
+            'response_time_ms'  => $responseTime,
+            'difficulty_at_time'=> $session['current_difficulty'],
+        ]);
+
+        // Motor adaptativo
+        $recentAnswers = $this->answerModel->getRecent($sessionId, 5);
+        $newDifficulty = AdaptiveEngine::getNextDifficulty(
+            $recentAnswers,
+            $session['current_difficulty']
+        );
+
+        if ($newDifficulty !== $session['current_difficulty']) {
+            $this->sessionModel->updateDifficulty($sessionId, $newDifficulty);
+        }
+
+        $allAnswers    = $this->sessionModel->getAnswers($sessionId);
+        $answeredIds   = array_column($allAnswers, 'question_id');
+        $totalAnswered = count($allAnswers);
+
+        // Calcular vidas restantes desde la BD — fuente de verdad
+        $incorrectCount = count(array_filter($allAnswers, fn($a) => !$a['is_correct']));
+        $livesRemaining = (int) $config['lives'] - $incorrectCount;
+
+        $maxQuestions = (int) $config['questions'];
+        $gameOver     = ($livesRemaining <= 0) || ($totalAnswered >= $maxQuestions);
+        $nextQuestion = null;
+
+        if (!$gameOver) {
+            $nextQuestion = $this->getNextQuestion($sessionId, $newDifficulty, $answeredIds);
+            if (!$nextQuestion) $gameOver = true;
+        }
+
+        if ($gameOver) {
+            $correctCount = count(array_filter($allAnswers, fn($a) => $a['is_correct']));
+            $total        = count($allAnswers);
+
+            $this->sessionModel->close($sessionId, $correctCount, $total);
+
+            $userModel = new \UserModel();
+            $userModel->updateStats($payload['sub'], $correctCount);
+
+            Response::success([
+                'feedback'        => $question['feedback_text'],
+                'correct'         => $isCorrect,
+                'correct_answer'  => $question['correct_answer'],
+                'game_over'       => true,
+                'points_earned'   => $points,
+                'score'           => $correctCount,
+                'total'           => $total,
+                'percentage'      => $total > 0 ? round(($correctCount / $total) * 100, 1) : 0,
+                'reason'          => $livesRemaining <= 0 ? 'no_lives' : 'completed',
+                'lives_remaining' => $livesRemaining,
+            ], 'Sesión finalizada');
+        }
+
+        Response::success([
+            'feedback'        => $question['feedback_text'],
+            'correct'         => $isCorrect,
+            'correct_answer'  => $question['correct_answer'],
+            'game_over'       => false,
+            'points_earned'   => $points,
+            'new_difficulty'  => $newDifficulty,
+            'next_question'   => $this->formatQuestion($nextQuestion),
+            'lives_remaining' => $livesRemaining,
+        ]);
+    }
+
+    /**
+     * GET /api/game/result?session_id=1
+     */
+    public function result(Request $request, array $payload): void {
+        $sessionId = (int)($request->query['session_id'] ?? 0);
+
+        if (!$sessionId) {
+            Response::error('session_id requerido');
+        }
+
+        $session = $this->sessionModel->findById($sessionId);
+
+        if (!$session) {
+            Response::notFound('Sesión no encontrada');
+        }
+
+        if ($session['user_id'] !== $payload['sub']) {
+            Response::forbidden();
+        }
+
+        $answers = $this->sessionModel->getAnswers($sessionId);
+        $correct = count(array_filter($answers, fn($a) => $a['is_correct']));
+        $total   = count($answers);
+
+        Response::success([
+            'session'    => $session,
+            'score'      => $correct,
+            'total'      => $total,
+            'percentage' => $total > 0 ? round(($correct / $total) * 100, 1) : 0,
+            'answers'    => $answers,
+        ]);
+    }
+
+    // ── Helpers ──────────────────────────────────────────
+
+    private function getNextQuestion(int $sessionId, string $difficulty, array $exclude): ?array {
+        $questions = $this->questionModel->getByDifficulty($difficulty, 1, $exclude);
+
+        if (empty($questions)) {
+            $fallbacks = array_diff(['easy', 'medium', 'hard'], [$difficulty]);
+            foreach ($fallbacks as $fallback) {
+                $questions = $this->questionModel->getByDifficulty($fallback, 1, $exclude);
+                if (!empty($questions)) break;
+            }
+        }
+
+        return $questions[0] ?? null;
+    }
+
+    private function formatQuestion(array $question): array {
+        return [
+            'id'            => $question['id'],
+            'question_text' => $question['question_text'],
+            'option_a'      => $question['option_a'],
+            'option_b'      => $question['option_b'],
+            'option_c'      => $question['option_c'],
+            'option_d'      => $question['option_d'],
+            'difficulty'    => $question['difficulty'],
+            'category_id'   => $question['category_id'],
+        ];
+    }
+}

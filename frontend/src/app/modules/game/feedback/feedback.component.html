@@ -1,0 +1,60 @@
+@if (data(); as d) {
+  <div class="feedback-body">
+
+    @if (d.selected === '__timeout__') {
+      <div class="feedback-result wrong">
+        <div class="feedback-icon">⏰</div>
+        <div>
+          <p class="feedback-title">{{ 'feedback.timeout' | transloco }}</p>
+          <p class="feedback-answer">
+            {{ 'feedback.correct_answer' | transloco }}
+            <strong>{{ d.correct_answer.toUpperCase() }}</strong>
+          </p>
+        </div>
+      </div>
+
+    } @else if (d.correct) {
+      <div class="feedback-result correct">
+        <div class="feedback-icon">✓</div>
+        <div>
+          <p class="feedback-title">{{ 'feedback.correct' | transloco }}</p>
+          <p class="feedback-answer">
+            {{ 'feedback.correct_answer' | transloco }}
+            <strong>{{ d.correct_answer.toUpperCase() }}</strong>
+          </p>
+        </div>
+      </div>
+
+    } @else {
+      <div class="feedback-result wrong">
+        <div class="feedback-icon">✗</div>
+        <div>
+          <p class="feedback-title">{{ 'feedback.incorrect' | transloco }}</p>
+          <p class="feedback-answer">
+            {{ 'feedback.correct_answer' | transloco }}
+            <strong>{{ d.correct_answer.toUpperCase() }}</strong>
+          </p>
+        </div>
+      </div>
+    }
+
+    <div class="explanation-card">
+      <p class="exp-label">{{ 'feedback.explanation' | transloco }}</p>
+      <p>{{ d.feedback }}</p>
+    </div>
+
+    @if (d.new_difficulty) {
+      <div class="new-diff-row">
+        {{ 'feedback.new_difficulty' | transloco }}
+        <span class="diff-badge" [class]="d.new_difficulty">
+          {{ 'feedback.' + d.new_difficulty | transloco }}
+        </span>
+      </div>
+    }
+
+    <button class="btn-primary" (click)="continue()">
+      {{ d.game_over ? ('feedback.final' | transloco) : ('feedback.next' | transloco) }}
+    </button>
+
+  </div>
+}

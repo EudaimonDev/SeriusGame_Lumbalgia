@@ -1,0 +1,109 @@
+<div class="admin-login-root">
+
+  <div class="admin-login-wrapper">
+
+    <!-- Imagen columna -->
+    <img src="COLUMNA-CONFIG.png" alt="Columna" class="admin-columna">
+
+    <!-- Card login -->
+    <div class="admin-login-card">
+
+      <div class="admin-login-header">
+        <div class="admin-login-header__icon">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <circle cx="14" cy="10" r="5" stroke="white" stroke-width="1.8"/>
+            <path d="M4 24c0-5.523 4.477-10 10-10s10 4.477 10 10" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h1 class="admin-login-header__title">Panel de Control</h1>
+        <p class="admin-login-header__sub">Acceso administrativo</p>
+      </div>
+
+      @if (!showForgot()) {
+        <div class="admin-login-body">
+
+          @if (error) {
+            <div class="auth-alert">{{ error }}</div>
+          }
+
+          <form [formGroup]="form" (ngSubmit)="submit()">
+            <div class="field-group" style="margin-bottom:14px">
+              <label class="field-label">Correo electrónico</label>
+              <div class="field-wrap">
+                <svg class="field-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <rect x="1" y="3" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.3"/>
+                  <path d="M1 5.5l6.3 4.2a1 1 0 001.4 0L15 5.5" stroke="currentColor" stroke-width="1.3"/>
+                </svg>
+                <input type="email" formControlName="email"
+                       class="field-input" placeholder="admin@lumbalgia.com">
+              </div>
+            </div>
+
+            <div class="field-group" style="margin-bottom:14px">
+              <label class="field-label">Contraseña</label>
+              <div class="field-wrap">
+                <svg class="field-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <rect x="3" y="7" width="10" height="7" rx="1.5" stroke="currentColor" stroke-width="1.3"/>
+                  <path d="M5 7V5a3 3 0 016 0v2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+                </svg>
+                <input type="password" formControlName="password"
+                       class="field-input" placeholder="••••••••">
+              </div>
+            </div>
+
+            <button type="submit" class="auth-btn" [disabled]="loading">
+              @if (loading) { <span class="auth-btn__spinner"></span> }
+              Iniciar sesión
+            </button>
+          </form>
+
+          <button class="admin-forgot-link" (click)="showForgot.set(true)">
+            ¿Olvidaste tu contraseña?
+          </button>
+
+          <div class="admin-login-back">
+            ¿No eres administrador?
+            <a routerLink="/login">Volver al juego</a>
+          </div>
+
+        </div>
+      }
+
+      @if (showForgot()) {
+        <div class="admin-login-body">
+
+          <button class="admin-back-btn" (click)="showForgot.set(false)">← Volver</button>
+          <h3 class="forgot-title">Recuperar contraseña</h3>
+          <p class="forgot-sub">Ingresa tu correo y te enviaremos una nueva contraseña.</p>
+
+          @if (forgotMsg) {
+            <div class="auth-alert auth-alert--success">{{ forgotMsg }}</div>
+          }
+          @if (forgotError) {
+            <div class="auth-alert">{{ forgotError }}</div>
+          }
+
+          <form [formGroup]="forgotForm" (ngSubmit)="submitForgot()">
+            <div class="field-group" style="margin-bottom:14px">
+              <label class="field-label">Correo electrónico</label>
+              <div class="field-wrap">
+                <svg class="field-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <rect x="1" y="3" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.3"/>
+                  <path d="M1 5.5l6.3 4.2a1 1 0 001.4 0L15 5.5" stroke="currentColor" stroke-width="1.3"/>
+                </svg>
+                <input type="email" formControlName="email"
+                       class="field-input" placeholder="admin@lumbalgia.com">
+              </div>
+            </div>
+            <button type="submit" class="auth-btn" [disabled]="forgotLoading">
+              @if (forgotLoading) { <span class="auth-btn__spinner"></span> }
+              Enviar nueva contraseña
+            </button>
+          </form>
+
+        </div>
+      }
+
+    </div>
+  </div>
+</div>

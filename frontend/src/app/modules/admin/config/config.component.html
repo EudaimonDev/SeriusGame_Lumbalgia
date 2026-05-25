@@ -1,0 +1,83 @@
+<div class="admin-body">
+  <div class="admin-toolbar">
+    <h2>Configuración del juego</h2>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-center">Cargando...</div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="save()" class="crud-panel">
+
+      @if (saved()) {
+        <div class="auth-alert auth-alert--success">
+          ✓ Configuración guardada correctamente
+        </div>
+      }
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+
+        <div class="form-group">
+          <label>Vidas por partida</label>
+          <input type="number" formControlName="lives" min="1" max="10">
+          <small style="color:var(--muted);font-size:11px">Entre 1 y 10</small>
+        </div>
+
+        <div class="form-group">
+          <label>Preguntas por partida</label>
+          <input type="number" formControlName="questions" min="5" max="50">
+          <small style="color:var(--muted);font-size:11px">Entre 5 y 50</small>
+        </div>
+
+        <div class="form-group">
+          <label>Tiempo por pregunta (segundos)</label>
+          <input type="number" formControlName="time_seconds" min="5" max="120">
+          <small style="color:var(--muted);font-size:11px">Entre 5 y 120</small>
+        </div>
+
+        <div class="form-group">
+          <label>Puntos por respuesta correcta</label>
+          <input type="number" formControlName="points_correct" min="1">
+        </div>
+
+        <div class="form-group">
+          <label>Puntos bonus (respuesta rápida)</label>
+          <input type="number" formControlName="points_bonus" min="0">
+          <small style="color:var(--muted);font-size:11px">Si responde en menos de la mitad del tiempo</small>
+        </div>
+
+      </div>
+
+      <button type="submit" class="btn-sm primary" style="margin-top:8px">
+        Guardar configuración
+      </button>
+
+    </form>
+
+    <!-- Preview -->
+    <div class="crud-panel">
+      <p class="panel-title">Vista previa</p>
+      <div style="display:flex;gap:20px;flex-wrap:wrap">
+        <div class="stat-pill">
+          <p class="val">{{ form.value.lives }}</p>
+          <p class="lbl">Vidas ❤️</p>
+        </div>
+        <div class="stat-pill">
+          <p class="val">{{ form.value.questions }}</p>
+          <p class="lbl">Preguntas</p>
+        </div>
+        <div class="stat-pill">
+          <p class="val">{{ form.value.time_seconds }}s</p>
+          <p class="lbl">Por pregunta</p>
+        </div>
+        <div class="stat-pill">
+          <p class="val">{{ form.value.points_correct }}</p>
+          <p class="lbl">Pts correcta</p>
+        </div>
+        <div class="stat-pill">
+          <p class="val">+{{ form.value.points_bonus }}</p>
+          <p class="lbl">Pts bonus</p>
+        </div>
+      </div>
+    </div>
+  }
+</div>

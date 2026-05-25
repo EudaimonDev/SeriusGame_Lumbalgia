@@ -1,0 +1,94 @@
+@if (result(); as r) {
+  <div class="result-epic">
+
+    <div class="result-epic__bg"></div>
+    <div class="result-epic__particles" aria-hidden="true">
+      <span class="rp rp1">✦</span>
+      <span class="rp rp2">⭐</span>
+      <span class="rp rp3">✦</span>
+      <span class="rp rp4">💫</span>
+      <span class="rp rp5">✦</span>
+      <span class="rp rp6">⭐</span>
+      <span class="rp rp7">✦</span>
+      <span class="rp rp8">💫</span>
+    </div>
+
+    <!-- Hero section -->
+    <div class="result-epic__hero">
+      <div class="result-epic__left">
+        <p class="result-epic__trophy">🏆</p>
+        <h1 class="result-epic__title">
+          {{ 'result.mission_complete' | transloco }}
+        </h1>
+        <div class="result-epic__divider">◆</div>
+        <p class="result-epic__subtitle">
+          {{ 'result.defeated_enemies' | transloco }}
+        </p>
+      </div>
+      <div class="result-epic__character">
+        <img src="columna-victoria.png" alt="Victoria" class="result-epic__character-img">
+      </div>
+    </div>
+
+    <!-- Score panel -->
+    <div class="result-epic__score-panel">
+      <div class="result-epic__laurels">
+        <span class="result-epic__laurel-left">🌿</span>
+        <div class="result-epic__score-center">
+          <p class="result-epic__pct"
+             [style.color]="r.percentage === 100 ? '#fbbf24' :
+                            r.percentage >= 80  ? '#4ade80' :
+                            r.percentage >= 60  ? '#fb923c' : '#f87171'">
+            {{ r.percentage }}%
+          </p>
+          <p class="result-epic__pct-label">
+            ◆
+            {{ r.percentage === 100 ? ('result.accuracy_total' | transloco) :
+               r.percentage >= 80  ? ('result.excellent'       | transloco) :
+               r.percentage >= 60  ? ('result.good'            | transloco) :
+                                     ('result.keep_trying'     | transloco) }}
+            ◆
+          </p>
+          <div class="result-epic__stars">
+            @for (s of getStars(r.percentage); track s) {
+              <span class="result-epic__star" [class.filled]="s">⭐</span>
+            }
+          </div>
+        </div>
+        <span class="result-epic__laurel-right">🌿</span>
+      </div>
+
+      <!-- Stats -->
+      <div class="result-epic__stats">
+        <div class="result-epic__stat">
+          <span class="result-epic__stat-icon">✅</span>
+          <p class="result-epic__stat-val">{{ r.score }}</p>
+          <p class="result-epic__stat-lbl">{{ 'result.correct' | transloco }}</p>
+        </div>
+        <div class="result-epic__stat-divider"></div>
+        <div class="result-epic__stat">
+          <span class="result-epic__stat-icon">❌</span>
+          <p class="result-epic__stat-val">{{ r.total - r.score }}</p>
+          <p class="result-epic__stat-lbl">{{ 'result.incorrect' | transloco }}</p>
+        </div>
+        <div class="result-epic__stat-divider"></div>
+        <div class="result-epic__stat">
+          <span class="result-epic__stat-icon">❓</span>
+          <p class="result-epic__stat-val">{{ r.total }}</p>
+          <p class="result-epic__stat-lbl">{{ 'result.questions' | transloco }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botones -->
+    <div class="result-epic__actions">
+      <a routerLink="/game" class="result-epic__btn result-epic__btn--primary">
+        🎮 {{ 'result.play_again' | transloco }}
+      </a>
+      <a routerLink="/results" class="result-epic__btn result-epic__btn--secondary">
+        📊 {{ 'result.my_results' | transloco }}
+      </a>
+    </div>
+
+  </div>
+}

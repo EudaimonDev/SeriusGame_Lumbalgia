@@ -1,0 +1,180 @@
+<div class="ranking-root">
+
+  @if (loading()) {
+    <div class="loading-center">{{ 'ranking.title' | transloco }}...</div>
+  } @else if (isDefeat()) {
+
+    <!-- PANTALLA ÉPICA DE DERROTA -->
+    <div class="defeat-epic">
+      <div class="defeat-epic__bg"></div>
+
+      <!-- Partículas -->
+      <div class="defeat-epic__particles" aria-hidden="true">
+        <span class="dp dp1">💀</span>
+        <span class="dp dp2">⚔️</span>
+        <span class="dp dp3">💀</span>
+        <span class="dp dp4">🗡️</span>
+        <span class="dp dp5">💀</span>
+        <span class="dp dp6">⚔️</span>
+      </div>
+
+      <!-- Hero section -->
+      <div class="defeat-epic__hero">
+        <div class="defeat-epic__left">
+          <p class="defeat-epic__skull">💀</p>
+          <h1 class="defeat-epic__title">
+            {{ 'ranking.defeat_epic_title' | transloco }}
+          </h1>
+          <div class="defeat-epic__divider">◆</div>
+          <p class="defeat-epic__subtitle">
+            {{ 'ranking.defeat_epic_sub1' | transloco }}
+            <span style="color:#f87171;font-weight:700">
+              {{ 'ranking.defeat_epic_sub2' | transloco }}
+            </span>
+            {{ 'ranking.defeat_epic_sub3' | transloco }}
+          </p>
+        </div>
+        <div class="defeat-epic__character">
+          <img src="columna-derrota.png" alt="Derrota" class="defeat-epic__character-img">
+        </div>
+      </div>
+
+      <!-- Score panel -->
+      <div class="defeat-epic__score-panel">
+        <div class="defeat-epic__laurels">
+          <span class="defeat-epic__laurel-left">🌿</span>
+          <div class="defeat-epic__score-center">
+            <p class="defeat-epic__pct">{{ myPosition()?.precision ?? 0 }}%</p>
+            <p class="defeat-epic__pct-label">
+              ◆ {{ 'result.accuracy_total' | transloco }} ◆
+            </p>
+            <div class="defeat-epic__stars">
+              @for (s of getStars(myPosition()?.precision ?? 0); track s) {
+                <span class="defeat-epic__star" [class.filled]="s">⭐</span>
+              }
+            </div>
+          </div>
+          <span class="defeat-epic__laurel-right">🌿</span>
+        </div>
+
+        <!-- Stats -->
+        <div class="defeat-epic__stats">
+          <div class="defeat-epic__stat">
+            <span class="defeat-epic__stat-icon">✅</span>
+            <p class="defeat-epic__stat-val">{{ myPosition()?.max_puntaje ?? 0 }}</p>
+            <p class="defeat-epic__stat-lbl">{{ 'result.correct' | transloco }}</p>
+          </div>
+          <div class="defeat-epic__stat-divider"></div>
+          <div class="defeat-epic__stat">
+            <span class="defeat-epic__stat-icon">🏆</span>
+            <p class="defeat-epic__stat-val">{{ myPosition()?.position ?? '-' }}</p>
+            <p class="defeat-epic__stat-lbl">{{ 'ranking.your_position' | transloco }}</p>
+          </div>
+          <div class="defeat-epic__stat-divider"></div>
+          <div class="defeat-epic__stat">
+            <span class="defeat-epic__stat-icon">🎮</span>
+            <p class="defeat-epic__stat-val">{{ myPosition()?.partidas ?? 0 }}</p>
+            <p class="defeat-epic__stat-lbl">{{ 'ranking.games' | transloco }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botones -->
+      <div class="defeat-epic__actions">
+        <a routerLink="/game" class="defeat-epic__btn defeat-epic__btn--primary">
+          🔄 {{ 'ranking.play_again' | transloco }}
+        </a>
+        <a routerLink="/profile" class="defeat-epic__btn defeat-epic__btn--secondary">
+          📊 {{ 'ranking.my_profile' | transloco }}
+        </a>
+      </div>
+
+      <!-- Motivación -->
+      <p class="defeat-epic__tip">
+        💡 {{ 'ranking.defeat_tip' | transloco }}
+      </p>
+
+    </div>
+
+  } @else {
+
+    <!-- RANKING NORMAL -->
+    @if (myPosition(); as mp) {
+      <div class="ranking-my-pos">
+        <div class="ranking-my-pos__num">{{ mp.position }}</div>
+        <div>
+          <p class="ranking-my-pos__label">{{ 'ranking.your_position' | transloco }}</p>
+          <p class="ranking-my-pos__title">
+            {{ 'ranking.place' | transloco }}{{ mp.position }}
+            {{ 'ranking.of' | transloco }} {{ ranking().length }}
+          </p>
+        </div>
+      </div>
+    }
+
+    <div class="ranking-card">
+      <table class="ranking-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>{{ 'ranking.player'       | transloco }}</th>
+            <th>{{ 'ranking.age'          | transloco }}</th>
+            <th>{{ 'ranking.games'        | transloco }}</th>
+            <th>{{ 'ranking.max_score'    | transloco }}</th>
+            <th>{{ 'ranking.total_points' | transloco }}</th>
+            <th>{{ 'ranking.precision'    | transloco }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of ranking(); track item.id) {
+            <tr [class.ranking-table__me]="myPosition()?.id === item.id">
+              <td class="ranking-table__medal">
+                @if (getMedalIcon(item.position)) {
+                  <span class="ranking-medal">{{ getMedalIcon(item.position) }}</span>
+                } @else {
+                  <span class="ranking-pos">{{ item.position }}</span>
+                }
+              </td>
+              <td class="ranking-table__player">
+                <div class="ranking-avatar"
+                     [style.background]="myPosition()?.id === item.id ? 'var(--brand-600)' : ''"
+                     [style.color]="myPosition()?.id === item.id ? '#fff' : ''">
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <circle cx="7" cy="5" r="3" stroke="currentColor" stroke-width="1.3"/>
+                    <path d="M1 13c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+                  </svg>
+                </div>
+                {{ item.name }}
+                @if (myPosition()?.id === item.id) {
+                  <span class="ranking-you">TÚ</span>
+                }
+              </td>
+              <td>{{ item.age }}</td>
+              <td>{{ item.partidas }}</td>
+              <td>{{ item.max_puntaje }}</td>
+              <td style="font-weight:700;color:var(--brand-600)">{{ item.puntos_totales }}</td>
+              <td>
+                <span class="ranking-precision"
+                      [style.color]="getPrecisionColor(item.precision)"
+                      [style.background]="getPrecisionColor(item.precision) + '20'">
+                  {{ item.precision }}%
+                </span>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:20px">
+      <a routerLink="/game" class="btn-primary"
+         style="flex:1;text-align:center;text-decoration:none;padding:13px">
+        🎮 {{ 'ranking.play_again' | transloco }}
+      </a>
+      <a routerLink="/profile" class="btn-secondary" style="flex:1;text-align:center">
+        {{ 'ranking.my_profile' | transloco }}
+      </a>
+    </div>
+
+  }
+</div>

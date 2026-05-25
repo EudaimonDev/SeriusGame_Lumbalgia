@@ -1,0 +1,136 @@
+<div class="dashboard-body">
+
+  <div class="dash-welcome">
+    <h2>Panel de Control 🛠️</h2>
+    <p>Bienvenido, {{ auth.currentUser()?.name }}</p>
+  </div>
+
+  @if (adminStats()) {
+
+    <div class="dash-stats" style="margin-bottom: 20px">
+      <div class="stat-pill">
+        <p class="val">{{ adminStats().total_students }}</p>
+        <p class="lbl">Estudiantes</p>
+      </div>
+      <div class="stat-pill">
+        <p class="val">{{ adminStats().total_rooms }}</p>
+        <p class="lbl">Salas activas</p>
+      </div>
+      <div class="stat-pill">
+        <p class="val">{{ adminStats().total_questions }}</p>
+        <p class="lbl">Preguntas</p>
+      </div>
+      <div class="stat-pill">
+        <p class="val">{{ adminStats().total_sessions }}</p>
+        <p class="lbl">Partidas</p>
+      </div>
+    </div>
+
+    <div class="cards-grid" style="margin-bottom: 20px">
+      <div class="dash-card accent-card" routerLink="/admin/questions">
+        <div class="card-icon">❓</div>
+        <p class="card-title">Preguntas</p>
+        <p class="card-sub">Gestionar banco de preguntas</p>
+      </div>
+      <div class="dash-card" routerLink="/admin/rooms">
+        <div class="card-icon">🏠</div>
+        <p class="card-title">Salas</p>
+        <p class="card-sub">Crear y gestionar salas de juego</p>
+      </div>
+      <div class="dash-card" routerLink="/admin/config">
+        <div class="card-icon">⚙️</div>
+        <p class="card-title">Configuración</p>
+        <p class="card-sub">Vidas, preguntas, tiempo y puntos</p>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+
+      <div class="crud-panel">
+        <p class="panel-title">Últimos estudiantes registrados</p>
+        @if (adminStats().recent_students.length === 0) {
+          <p style="color:var(--muted);font-size:13px">Aún no hay estudiantes.</p>
+        } @else {
+          <table class="questions-table" style="margin-top:10px">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Grupo</th>
+                <th>Fecha</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (s of adminStats().recent_students; track s.name) {
+                <tr>
+                  <td style="font-weight:600">{{ s.name }}</td>
+                  <td>
+                    <span class="diff-dot"
+                          [style.background]="s.group_type === 'experimental'
+                            ? 'var(--brand-500)' : 'var(--muted)'">
+                    </span>
+                    {{ s.group_type === 'experimental' ? 'Exp.' : 'Control' }}
+                  </td>
+                  <td style="color:var(--muted);font-size:12px">
+                    {{ s.created_at | slice:0:10 }}
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+
+      <div class="crud-panel">
+        <p class="panel-title">Salas activas</p>
+        @if (adminStats().room_stats.length === 0) {
+          <p style="color:var(--muted);font-size:13px">
+            No hay salas activas.
+            <a routerLink="/admin/rooms" style="color:var(--brand-500);font-weight:600">
+              Crear una
+            </a>
+          </p>
+        } @else {
+          <table class="questions-table" style="margin-top:10px">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Nombre</th>
+                <th>Grupo</th>
+                <th>Estudiantes</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (r of adminStats().room_stats; track r.code) {
+                <tr>
+                  <td>
+                    <code style="font-size:12px;font-weight:700;
+                                 background:var(--brand-50);color:var(--brand-600);
+                                 padding:2px 7px;border-radius:5px">
+                      {{ r.code }}
+                    </code>
+                  </td>
+                  <td style="font-weight:500;font-size:13px">{{ r.name }}</td>
+                  <td>
+                    <span class="diff-dot"
+                          [style.background]="r.group_type === 'experimental'
+                            ? 'var(--brand-500)' : 'var(--muted)'">
+                    </span>
+                    {{ r.group_type === 'experimental' ? 'Exp.' : 'Control' }}
+                  </td>
+                  <td style="font-weight:700;color:var(--brand-600);font-family:monospace">
+                    {{ r.total_students }}
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+
+    </div>
+
+  } @else {
+    <div class="loading-center">Cargando estadísticas...</div>
+  }
+
+</div>
