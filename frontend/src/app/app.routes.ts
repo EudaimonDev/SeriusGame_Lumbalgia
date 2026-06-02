@@ -2,6 +2,7 @@
 import { Routes } from '@angular/router';
 import { authGuard }  from './core/guards/auth.guard';
 import { adminGuard } from './core/guards/admin.guard';
+import { phaseGuard } from './core/guards/phase.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -35,18 +36,24 @@ export const routes: Routes = [
   },
 
   // ── Juego — estudiante ────────────────────────────────
-  {
-    path: 'pretest',
-    canActivate: [authGuard],
-    loadComponent: () => import('./modules/game/pretest/pretest.component')
-      .then(m => m.PretestComponent)
-  },
-  {
-    path: 'game',
-    canActivate: [authGuard],
-    loadComponent: () => import('./modules/game/play/play.component')
-      .then(m => m.PlayComponent)
-  },
+/*{
+  path: 'pretest',
+  canActivate: [authGuard], // ← solo authGuard, sin phaseGuard
+  loadComponent: () => import('./modules/game/pretest/pretest.component')
+    .then(m => m.PretestComponent)
+},
+{
+  path: 'posttest',
+  canActivate: [authGuard], // ← solo authGuard, sin phaseGuard
+  loadComponent: () => import('./modules/game/posttest/posttest.component')
+    .then(m => m.PosttestComponent)
+},*/
+{
+  path: 'game',
+  canActivate: [authGuard, phaseGuard], // ← phaseGuard solo aquí
+  loadComponent: () => import('./modules/game/play/play.component')
+    .then(m => m.PlayComponent)
+},
   {
     path: 'feedback',
     canActivate: [authGuard],

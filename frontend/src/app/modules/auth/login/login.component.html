@@ -187,23 +187,16 @@
             </button>
             <p class="rpg-room-title">🏠 {{ 'login.room_title' | transloco }}</p>
           </div>
-
+           @if (form.invalid) {
+            <div class="rpg-alert">
+              ⚠️ Primero completa tu nombre y edad en el formulario anterior.
+            </div>
+          }
           @if (roomError) {
             <div class="rpg-alert">{{ roomError }}</div>
           }
 
           <form [formGroup]="roomForm" (ngSubmit)="submitRoom()" class="rpg-form">
-            <div class="rpg-field">
-              <label class="rpg-field__label">
-                <span>👤</span> {{ 'login.name_label' | transloco }}
-              </label>
-              <input type="text" formControlName="name"
-                     class="rpg-field__input"
-                     [placeholder]="'login.name_placeholder' | transloco"
-                     maxlength="50"
-                     (keypress)="soloLetras($event)"
-                     (paste)="$event.preventDefault()">
-            </div>
             <div class="rpg-field">
               <label class="rpg-field__label">
                 <span>🔑</span> {{ 'login.room_code_label' | transloco }}

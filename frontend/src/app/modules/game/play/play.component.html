@@ -1,53 +1,59 @@
-<!-- src/app/modules/game/play/play.component.html -->
 @if (loading()) {
   <div class="loading-center">Cargando sesión...</div>
 } @else {
-  <div class="play-root">
+  <div class="rpg-play">
 
-    <!-- TOP BAR -->
-    <div class="play-topbar">
-      <!-- Jugador -->
-      <div class="play-player">
-        <div class="play-player__avatar">
-          {{ auth.currentUser()?.name?.charAt(0) }}
-        </div>
-        <span class="play-player__name">{{ auth.currentUser()?.name }}</span>
+    <div class="rpg-topbar">
+      <div class="rpg-player">
+        <div class="rpg-avatar">{{ auth.currentUser()?.name?.charAt(0) }}</div>
+        <span class="rpg-player-name">{{ auth.currentUser()?.name }}</span>
       </div>
 
-      <!-- Dificultad -->
-      <div class="play-difficulty">
-        <span class="play-difficulty__label">{{ 'game.difficulty' | transloco }}</span>
-        <div class="play-difficulty__bar">
-          <div class="play-difficulty__fill"
+      <div class="rpg-difficulty">
+        <span class="rpg-difficulty__label">{{ 'game.difficulty' | transloco }}</span>
+        <div class="rpg-difficulty__bar">
+          <div class="rpg-difficulty__fill"
                [style.width]="difficulty() === 'easy' ? '33%' : difficulty() === 'medium' ? '66%' : '100%'"
                [class]="difficulty()">
           </div>
         </div>
-        <span class="play-difficulty__val">
+        <span class="rpg-difficulty__val">
           {{ difficulty() === 'easy' ? '1.0/5' : difficulty() === 'medium' ? '3.0/5' : '5.0/5' }}
         </span>
       </div>
 
-      <!-- Stats -->
-      <div class="play-stats">
-        <!-- Vidas -->
-        <div class="play-stat">
-          <span class="play-stat__icon">❤️</span>
-          <span class="play-stat__val">{{ lives() }}/{{ maxLives() }}</span>
+      <div class="rpg-stats">
+        <div class="rpg-stat">
+          <span class="rpg-stat__icon">❤️</span>
+          <span>{{ lives() }}/{{ maxLives() }}</span>
         </div>
-        <!-- Puntaje -->
-        <div class="play-stat">
-          <span class="play-stat__icon">🏆</span>
-          <span class="play-stat__val">{{ score() }}</span>
+        <div class="rpg-stat">
+          <span class="rpg-stat__icon">🏆</span>
+          <span>{{ score() }}</span>
         </div>
-        <!-- Botón pausa -->
-        <button class="play-pause-btn" (click)="togglePause()" [title]="paused() ? 'Continuar' : 'Pausar'">
+
+        <!-- Indicador de racha -->
+        @if (streak() >= 2) {
+          <div class="rpg-streak"
+               [class.rpg-streak--hot]="streak() >= 3"
+               [class.rpg-streak--fire]="streak() >= 5"
+               [title]="'Racha: ' + streak() + ' correctas seguidas'">
+            @if (streak() >= 5) { ⚡ }
+            @else { 🔥 }
+            <span class="rpg-streak__count">x{{ streak() }}</span>
+            @if (streakMultiplier()) {
+              <span class="rpg-streak__mult">{{ streakMultiplier() }}</span>
+            }
+          </div>
+        }
+
+        <button class="rpg-pause-btn" (click)="togglePause()">
           @if (paused()) {
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
               <polygon points="4,2 14,8 4,14" fill="currentColor"/>
             </svg>
           } @else {
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
               <rect x="3" y="2" width="4" height="12" rx="1" fill="currentColor"/>
               <rect x="9" y="2" width="4" height="12" rx="1" fill="currentColor"/>
             </svg>
@@ -56,95 +62,129 @@
       </div>
     </div>
 
-    <!-- PROGRESS BAR -->
-    <div class="play-progress-bar">
-      <div class="play-progress-bar__inner">
-        <span class="play-progress-bar__label">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path d="M1 4h12M1 7h8M1 10h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-          </svg>
-          {{ 'game.progress' | transloco }}
-        </span>
-        <span class="play-progress-bar__count">{{ answered() }} / {{ maxQuestions() }} {{ 'game.questions' | transloco }}</span>
+    <div class="rpg-progress-bar">
+      <div class="rpg-progress-bar__inner">
+        <span class="rpg-progress-bar__label">⚔ {{ 'game.progress' | transloco }}</span>
+        <span class="rpg-progress-bar__count">{{ answered() }} / {{ maxQuestions() }} {{ 'game.questions' | transloco }}</span>
       </div>
-      <div class="play-progress-track">
-        <div class="play-progress-fill"
-             [style.width.%]="(answered() / maxQuestions()) * 100">
-        </div>
+      <div class="rpg-progress-track">
+        <div class="rpg-progress-fill" [style.width.%]="(answered() / maxQuestions()) * 100"></div>
       </div>
-      <p class="play-progress-remaining">
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-          <circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.2"/>
-          <path d="M6 3v3l2 1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
-        </svg>
-        {{ maxQuestions() - answered() }} {{ 'game.remaining' | transloco }}
-      </p>
+      <span class="rpg-progress-remaining">{{ maxQuestions() - answered() }} {{ 'game.remaining' | transloco }}</span>
     </div>
 
-    <!-- QUESTION AREA -->
-    <div class="play-body">
-
-      <div class="play-question-card">
-        <div class="play-question-header">
-          <span class="play-question-num">{{ 'game.question_num' | transloco }}{{ answered() }}</span>
-          <div class="play-timer" [class.danger]="timeLeft() <= 5">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+    <div class="rpg-body">
+      <div class="rpg-question-card">
+        <div class="rpg-question-header">
+          <span class="rpg-question-num">⚔ {{ 'game.question_num' | transloco }}{{ answered() + 1 }}</span>
+          <div class="rpg-timer" [class.danger]="timeLeft() <= 5">
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
               <circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.3"/>
               <path d="M7 4v3l2 1.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
             </svg>
             {{ timeLeft() }}s
           </div>
         </div>
-        <p class="play-question-text">{{ question()?.question_text }}</p>
+        <p class="rpg-question-text">{{ question()?.question_text }}</p>
       </div>
 
-      <!-- Opciones 2x2 -->
-      <div class="play-options-grid">
+      <div class="rpg-options-grid">
         @for (opt of ['a','b','c','d']; track opt) {
-          <div class="play-option"
-               [class.selected]="selected() === opt"
-               [class.disabled]="!!selected()"
-               (click)="select(opt)">
-            <span class="play-option__text">{{ getOption(opt) }}</span>
-            <div class="play-option__radio"
-                 [class.checked]="selected() === opt">
-            </div>
+          <div class="rpg-option"
+              [class.selected]="selected() === opt"
+              (click)="select(opt)">
+            <span class="rpg-option__letter">{{ opt.toUpperCase() }}</span>
+            <span class="rpg-option__text">{{ getOption(opt) }}</span>
           </div>
         }
       </div>
 
-      <!-- Botón enviar -->
-      <button class="play-submit-btn"
+      <button class="rpg-submit-btn"
               [disabled]="!selected() || submitting()"
-              (click)="selected() && !submitting() ? null : null">
-        {{ 'game.send' | transloco }}
+              (click)="submit()">
+        ⚔ {{ 'game.send' | transloco }}
       </button>
-
     </div>
-    <!-- Barra de progreso con personaje -->
-    <div class="play-adventure-bar">
-      <div class="play-adventure-track">
 
-        <!-- Puntos de progreso -->
-        <div class="play-adventure-dots">
+    <div class="rpg-adventure-bar">
+      <div class="rpg-adventure-track">
+        <div class="rpg-adventure-dots">
           @for (i of dotsArray(); track i) {
-            <div class="play-adventure-dot"
-                [class.done]="i <= answered()"
-                [class.current]="i === answered()">
+            <div class="rpg-adventure-dot"
+                 [class.done]="i <= answered()"
+                 [class.current]="i === answered() + 1">
             </div>
           }
         </div>
-
-        <!-- Personaje que avanza -->
-        <img src="columna-combate.png"
-            alt="Columna guerrera"
-            class="play-adventure-hero"
-            [style.left.%]="heroPosition()">
-
-        <!-- Meta -->
-        <div class="play-adventure-goal">🏆</div>
-
+        <img src="columna-combate.png" alt="héroe" class="rpg-adventure-hero"
+             [style.left.%]="heroPosition()">
+        <div class="rpg-adventure-goal">🏆</div>
       </div>
     </div>
+
   </div>
+
+  <!-- Mensaje flotante de racha -->
+  @if (showStreakMsg()) {
+    <div class="rpg-streak-toast">
+      {{ streakMsg() }}
+    </div>
+  }
+
+  @if (showFeedback()) {
+    @if (feedbackData(); as d) {
+      <div class="rpg-feedback-backdrop">
+        <div class="rpg-feedback-modal"
+             [class.correct]="d.correct && d.selected !== '__timeout__'"
+             [class.wrong]="!d.correct || d.selected === '__timeout__'">
+
+          <div class="rpg-feedback-icon">
+            @if (d.selected === '__timeout__') { ⏰ }
+            @else if (d.correct) { ✦ }
+            @else { ✗ }
+          </div>
+
+          <h2 class="rpg-feedback-title">
+            @if (d.selected === '__timeout__') { {{ 'feedback.timeout' | transloco }} }
+            @else if (d.correct) { {{ 'feedback.correct' | transloco }} }
+            @else { {{ 'feedback.incorrect' | transloco }} }
+          </h2>
+
+          <!-- Racha en el feedback -->
+          @if (d.correct && d.selected !== '__timeout__' && (d.streak ?? 0) >= 2) {
+            <div class="rpg-feedback-streak">
+              @if ((d.streak ?? 0) >= 5) { ⚡ } @else { 🔥 }
+              Racha {{ d.streak }} — {{ (d.streak ?? 0) >= 5 ? 'x2 puntos' : (d.streak ?? 0) >= 3 ? 'x1.5 puntos' : '' }}
+            </div>
+          }
+
+          <p class="rpg-feedback-answer">
+            {{ 'feedback.correct_answer' | transloco }}
+            <strong>{{ d.correct_answer?.toUpperCase() }}</strong>
+          </p>
+
+          @if (d.feedback) {
+            <div class="rpg-feedback-explanation">
+              <p class="rpg-feedback-explanation__label">{{ 'feedback.explanation' | transloco }}</p>
+              <p class="rpg-feedback-explanation__text">{{ d.feedback }}</p>
+            </div>
+          }
+
+          @if (d.new_difficulty) {
+            <div class="rpg-feedback-diff">
+              {{ 'feedback.new_difficulty' | transloco }}
+              <span class="diff-badge" [class]="d.new_difficulty">
+                {{ 'feedback.' + d.new_difficulty | transloco }}
+              </span>
+            </div>
+          }
+
+          <button class="rpg-feedback-btn" (click)="continueFeedback()">
+            ⚔ {{ d.game_over ? ('feedback.final' | transloco) : ('feedback.next' | transloco) }}
+          </button>
+
+        </div>
+      </div>
+    }
+  }
 }

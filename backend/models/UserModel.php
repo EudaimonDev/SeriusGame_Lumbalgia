@@ -40,7 +40,7 @@ public function createStudent(string $name, int $age): int {
         ':name'       => $name,
         ':age'        => $age,
         ':role'       => 'student',
-        ':group_type' => 'experimental',
+        ':group_type' => 'free',  // ← antes era 'experimental'
     ]);
     return (int) $this->db->lastInsertId();
 }
@@ -61,19 +61,12 @@ public function createStudent(string $name, int $age): int {
         return (int) $this->db->lastInsertId();
     }
 
-    public function createStudentWithRoom(string $name, int $roomId, string $groupType): int {
-    $stmt = $this->db->prepare(
-        'INSERT INTO users (name, role, room_id, group_type)
-         VALUES (:name, :role, :room_id, :group_type)'
-    );
-    $stmt->execute([
-        ':name'       => $name,
-        ':role'       => 'student',
-        ':room_id'    => $roomId,
-        ':group_type' => $groupType,
-    ]);
-    return (int) $this->db->lastInsertId();
-}
+    public function createStudentWithRoom(string $name, int $roomId, string $groupType, int $age = 0): int {
+        $db   = Database::connect();
+        $stmt = $db->prepare("INSERT INTO users (name, age, role, room_id, group_type) VALUES (?, ?, 'student', ?, ?)");
+        $stmt->execute([$name, $age, $roomId, $groupType]);
+        return (int)$db->lastInsertId();
+    }
 
     // Actualizar stats después de cada sesión
     public function updateStats(int $userId, int $score): void {
@@ -98,5 +91,21 @@ public function createStudent(string $name, int $age): int {
             ':age'  => $age,
         ]);
         return $stmt->fetch() ?: null;
+    }
+
+    // Buscar estudiante por nombre exacto
+    public function findByName(string $name): ?array {
+        $db   = Database::connect();
+        $stmt = $db->prepare("SELECT * FROM users WHERE name = ? AND role = 'student' LIMIT 1");
+        $stmt->execute([$name]);
+        $result = $stmt->fetch();
+        return $result ?: null;
+    }
+
+    // Actualizar sala, grupo y edad
+    public function updateRoomAndAge(int $id, int $roomId, string $groupType, int $age): void {
+        $db   = Database::connect();
+        $stmt = $db->prepare("UPDATE users SET room_id = ?, group_type = ?, age = ? WHERE id = ?");
+        $stmt->execute([$roomId, $groupType, $age, $id]);
     }
 }

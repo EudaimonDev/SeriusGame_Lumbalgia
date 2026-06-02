@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script>
+    const path = window.location.pathname;
+    const repo = '/SeriusGame_Lumbalgia';
+    window.location.replace(
+      repo + '/?redirect=' + encodeURIComponent(path.replace(repo, ''))
+    );
+  </script>
+</head>
+</html>

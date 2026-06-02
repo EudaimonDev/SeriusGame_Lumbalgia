@@ -5,16 +5,15 @@ import { Question } from '../../../models/question.model';
 import { LanguageService } from '../../../core/services/language.service';
 
 @Component({
-  selector: 'app-pretest',
+  selector: 'app-posttest',
   standalone: true,
   imports: [RouterLink],
-  templateUrl: './pretest.component.html'
+  templateUrl: './posttest.component.html'
 })
-export class PretestComponent implements OnInit {
+export class PosttestComponent implements OnInit {
   private gameSvc = inject(GameService);
   private router  = inject(Router);
   private langSvc = inject(LanguageService);
-
   sessionId  = signal<number>(0);
   question   = signal<Question | null>(null);
   selected   = signal<string>('');
@@ -25,8 +24,8 @@ export class PretestComponent implements OnInit {
   finalScore = signal<number>(0);
 
   ngOnInit(): void {
-    sessionStorage.setItem('testMode', 'pretest');
-    this.gameSvc.startSession('pretest', this.langSvc.currentLang()).subscribe({
+    sessionStorage.setItem('testMode', 'posttest');
+    this.gameSvc.startSession('posttest', this.langSvc.currentLang()).subscribe({
       next: res => {
         this.sessionId.set(res.data.session_id);
         this.question.set(res.data.question);

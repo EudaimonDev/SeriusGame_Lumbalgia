@@ -36,7 +36,6 @@ export class LoginComponent implements OnInit, OnDestroy {
   });
 
   roomForm = this.fb.group({
-    name: ['', [Validators.required, Validators.pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/)]],
     code: ['', Validators.required]
   });
 
@@ -89,12 +88,28 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   submitRoom(): void {
-    if (this.roomForm.invalid) return;
+    if (this.form.invalid) {
+      this.roomError = 'Completa tu nombre y edad antes de unirte a una sala.';
+      return;
+    }
+    if (this.roomForm.invalid || this.form.invalid) return;
     this.roomLoading = true;
     this.roomError   = '';
-    const { name, code } = this.roomForm.value;
-    this.auth.joinRoom(name!, code!).subscribe({
-      next:  () => this.router.navigate(['/game']),
+    const name = this.form.value.name!;
+    const age  = Number(this.form.value.age);
+    const code = this.roomForm.value.code!;
+
+    this.auth.joinRoom(name, code, age).subscribe({
+      next: () => {
+        const phase = this.auth.getRoomPhase();
+        if (phase === 'pretest') {
+          this.router.navigate(['/pretest']);
+        } else if (phase === 'posttest') {
+          this.router.navigate(['/posttest']);
+        } else {
+          this.router.navigate(['/game']);
+        }
+      },
       error: (e: any) => {
         this.roomError   = e.error?.message ?? 'Código inválido';
         this.roomLoading = false;

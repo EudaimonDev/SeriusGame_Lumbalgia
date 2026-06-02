@@ -1,19 +1,22 @@
 // src/app/modules/admin/questions/questions.component.ts
-import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, signal, computed, effect} from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { AdminService } from '../../../core/services/admin.service';
 import { AdminQuestion } from '../../../models/question.model';
-
+import { TranslocoModule } from '@jsverse/transloco';
+import { JsonPipe } from '@angular/common';
+import { LanguageService } from '../../../core/services/language.service';
 
 @Component({
   selector: 'app-questions',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, TranslocoModule, JsonPipe],
   templateUrl: './questions.component.html'
 })
 export class QuestionsComponent implements OnInit {
   private adminSvc = inject(AdminService);
   private fb       = inject(FormBuilder);
+  private langSvc = inject(LanguageService);
 
   questions      = signal<AdminQuestion[]>([]);
   categories     = signal<any[]>([]);
@@ -38,6 +41,13 @@ export class QuestionsComponent implements OnInit {
     description: ['']
   });
 
+  constructor() {
+  effect(() => {
+    this.adminSvc.getQuestions({ language: this.langSvc.currentLang() }).subscribe({
+      next: r => this.questions.set(r.data)
+    });
+  });
+}
   //METODOS PARA CATEGORIAS
   openCategories(): void {
     this.showCategories.update(v => !v);
@@ -113,19 +123,24 @@ export class QuestionsComponent implements OnInit {
 
   ngOnInit(): void {
     this.load();
-    this.adminSvc.getCategories().subscribe({
-      next: r => this.categories.set(r.data)
-    });
+    this.loadCategories();
+
   }
 
   sortAsc = signal<boolean>(true);
+
+  loadCategories(): void {
+    this.adminSvc.getCategories(this.langSvc.currentLang()).subscribe({
+      next: r => this.categories.set(r.data)
+    });
+  }
 
   toggleSortDir(): void {
     this.sortAsc.update(v => !v);
   }
 
   load(): void {
-    this.adminSvc.getQuestions().subscribe({
+    this.adminSvc.getQuestions({ language: this.langSvc.currentLang() }).subscribe({
       next: r => this.questions.set(r.data)
     });
   }

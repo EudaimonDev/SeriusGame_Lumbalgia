@@ -3,7 +3,7 @@
 function handleCors(): void {
     $allowed = [
         'http://localhost:4200',
-        'https://TU_USUARIO.github.io',   // <- cambia esto cuando tengas el repo
+        'https://EudaimonDev.github.io',   // <- cambia esto cuando tengas el repo
     ];
 
     $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
@@ -12,7 +12,7 @@ function handleCors(): void {
         header("Access-Control-Allow-Origin: $origin");
     }
 
-    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, PATCH, OPTIONS');
     header('Access-Control-Allow-Headers: Content-Type, Authorization');
     header('Content-Type: application/json; charset=utf-8');
 

@@ -1,22 +1,852 @@
-<!-- src/app/modules/admin/reports/reports.component.html -->
 <div class="report-body">
   <div class="report-header-row">
-    <h2>Reporte del experimento</h2>
-  </div>
-  @if (report(); as r) {
-    <div class="group-compare">
-      <div class="group-card experimental">
-        <p class="gc-title">Grupo experimental</p>
-        <div class="gc-row"><span>Pre-test promedio</span><span class="gc-val">{{ r.experimental.pretest?.avg_score ?? '—' }}%</span></div>
-        <div class="gc-row"><span>Post-test promedio</span><span class="gc-val">{{ r.experimental.posttest?.avg_score ?? '—' }}%</span></div>
-        <div class="gc-row"><span>Ganancia</span><span class="gc-val">{{ r.experimental.gain !== null ? '+' + r.experimental.gain : '—' }} pts</span></div>
-      </div>
-      <div class="group-card control">
-        <p class="gc-title">Grupo control</p>
-        <div class="gc-row"><span>Pre-test promedio</span><span class="gc-val">{{ r.control.pretest?.avg_score ?? '—' }}%</span></div>
-        <div class="gc-row"><span>Post-test promedio</span><span class="gc-val">{{ r.control.posttest?.avg_score ?? '—' }}%</span></div>
-        <div class="gc-row"><span>Ganancia</span><span class="gc-val">{{ r.control.gain !== null ? '+' + r.control.gain : '—' }} pts</span></div>
-      </div>
+    <h2>{{ 'reports.title' | transloco }}</h2>
+    <div style="display: flex; gap: 8px">
+      <button
+        class="btn-sm"
+        [class.primary]="activeTab() === 'rooms'"
+        [class.outline]="activeTab() !== 'rooms'"
+        (click)="activeTab.set('rooms'); selectedRoom.set(null); loadStudents()"
+      >
+        {{ 'reports.tab_rooms' | transloco }}
+      </button>
+      <button
+        class="btn-sm"
+        [class.primary]="activeTab() === 'students'"
+        [class.outline]="activeTab() !== 'students'"
+        (click)="activeTab.set('students')"
+      >
+        {{ 'reports.tab_students' | transloco }}
+      </button>
+      <button
+        class="btn-sm"
+        [class.primary]="activeTab() === 'charts'"
+        [class.outline]="activeTab() !== 'charts'"
+        (click)="activeTab.set('charts')"
+      >
+        {{ 'reports.tab_charts' | transloco }}
+      </button>
+      <!--<button
+        class="btn-sm"
+        [class.primary]="activeTab() === 'comparison'"
+        [class.outline]="activeTab() !== 'comparison'"
+        (click)="activeTab.set('comparison')"
+      >
+        {{ 'reports.tab_comparison' | transloco }}
+      </button>-->
+      <button
+        class="btn-sm"
+        [class.primary]="activeTab() === 'questions'"
+        [class.outline]="activeTab() !== 'questions'"
+        (click)="activeTab.set('questions')"
+      >
+        ❓ Por pregunta
+      </button>
     </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-center">{{ 'reports.loading' | transloco }}</div>
+  } @else {
+    <!-- TAB: SALAS -->
+    @if (activeTab() === 'rooms') {
+      <div class="report-section">
+        <p class="report-section__title">{{ 'reports.rooms_title' | transloco }}</p>
+        <p class="report-section__sub">{{ 'reports.rooms_sub' | transloco }}</p>
+        @if (rooms().length === 0) {
+          <div class="report-empty">{{ 'reports.no_rooms' | transloco }}</div>
+        } @else {
+          <table class="questions-table" style="margin-top: 12px">
+            <thead>
+              <tr>
+                <th>{{ 'reports.col_room' | transloco }}</th>
+                <th>{{ 'reports.col_code' | transloco }}</th>
+                <th>{{ 'reports.col_group' | transloco }}</th>
+                <th>{{ 'reports.col_students' | transloco }}</th>
+                <th>{{ 'reports.col_sessions' | transloco }}</th>
+                <th>{{ 'reports.col_avg_score' | transloco }}</th>
+                <th>{{ 'reports.col_avg_precision' | transloco }}</th>
+                <th>{{ 'reports.col_max_score' | transloco }}</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (room of rooms(); track room.id) {
+                <tr>
+                  <td style="font-weight: 700">{{ room.name }}</td>
+                  <td>
+                    <span
+                      style="
+                        font-family: monospace;
+                        font-size: 12px;
+                        background: var(--surface-2);
+                        padding: 2px 8px;
+                        border-radius: 4px;
+                        border: 1px solid var(--border2);
+                      "
+                    >
+                      {{ room.code }}
+                    </span>
+                  </td>
+                  <td>
+                    <span
+                      [style.background]="
+                        room.group_type === 'experimental' ? 'var(--brand-50)' : 'var(--surface-2)'
+                      "
+                      [style.color]="
+                        room.group_type === 'experimental' ? 'var(--brand-600)' : 'var(--muted)'
+                      "
+                      style="
+                        font-size: 11px;
+                        font-weight: 700;
+                        padding: 3px 10px;
+                        border-radius: 999px;
+                      "
+                    >
+                      {{
+                        room.group_type === 'experimental'
+                          ? ('reports.experimental' | transloco)
+                          : ('reports.control' | transloco)
+                      }}
+                    </span>
+                  </td>
+                  <td style="font-weight: 700; text-align: center">{{ room.total_students }}</td>
+                  <td style="text-align: center">{{ room.total_sessions }}</td>
+                  <td style="font-weight: 700; color: var(--brand-600); text-align: center">
+                    {{ room.avg_score ?? '—' }}
+                  </td>
+                  <td style="text-align: center">
+                    <span
+                      style="
+                        font-weight: 700;
+                        padding: 3px 10px;
+                        border-radius: 999px;
+                        font-size: 12px;
+                      "
+                      [style.color]="getPrecisionColor(room.avg_precision ?? 0)"
+                      [style.background]="getPrecisionColor(room.avg_precision ?? 0) + '20'"
+                    >
+                      {{ room.avg_precision ?? 0 }}%
+                    </span>
+                  </td>
+                  <td style="font-family: monospace; font-weight: 700; text-align: center">
+                    {{ room.max_score ?? '—' }}
+                  </td>
+                  <td>
+                    <button class="btn-sm outline" (click)="filterByRoom(room.id)">
+                      {{ 'reports.btn_view_students' | transloco }}
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+    }
+
+    <!-- TAB: ESTUDIANTES -->
+    @if (activeTab() === 'students') {
+      <div class="report-section">
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+          "
+        >
+          <p class="report-section__title" style="margin: 0">
+            {{ 'reports.students_title' | transloco }}
+            @if (selectedRoom()) {
+              —
+              <span style="color: var(--brand-600)">
+                {{ rooms().find((r) => r.id === selectedRoom())?.name }}
+              </span>
+            }
+          </p>
+          <div style="margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap">
+            <button
+              class="btn-sm"
+              [class.primary]="!selectedRoom()"
+              [class.outline]="!!selectedRoom()"
+              (click)="filterByRoom(null); activeTab.set('students')"
+            >
+              {{ 'reports.all' | transloco }}
+            </button>
+            @for (room of rooms(); track room.id) {
+              <button
+                class="btn-sm"
+                [class.primary]="selectedRoom() === room.id"
+                [class.outline]="selectedRoom() !== room.id"
+                (click)="filterByRoom(room.id)"
+              >
+                {{ room.name }}
+              </button>
+            }
+          </div>
+        </div>
+        @if (students().length === 0) {
+          <div class="report-empty">{{ 'reports.no_students' | transloco }}</div>
+        } @else {
+          <table class="questions-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>{{ 'reports.col_student' | transloco }}</th>
+                <th>{{ 'reports.col_age' | transloco }}</th>
+                <th>{{ 'reports.col_sala' | transloco }}</th>
+                <th>{{ 'reports.col_group' | transloco }}</th>
+                <th>{{ 'reports.col_sessions2' | transloco }}</th>
+                <th>{{ 'reports.col_avg_score' | transloco }}</th>
+                <th>{{ 'reports.col_max_score' | transloco }}</th>
+                <th>{{ 'reports.col_precision' | transloco }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (s of students(); track s.id; let i = $index) {
+                <tr>
+                  <td style="font-family: monospace; font-size: 11px; color: var(--muted)">
+                    {{ i + 1 }}
+                  </td>
+                  <td style="font-weight: 700">{{ s.name }}</td>
+                  <td>{{ s.age ?? '—' }}</td>
+                  <td>
+                    @if (s.room_name) {
+                      <span style="font-size: 12px">{{ s.room_name }}</span>
+                    } @else {
+                      <span style="color: var(--muted); font-size: 12px">
+                        {{ 'reports.no_room' | transloco }}
+                      </span>
+                    }
+                  </td>
+                  <td>
+                    <span
+                      [style.background]="
+                        s.group_type === 'experimental' ? 'var(--brand-50)' : 'var(--surface-2)'
+                      "
+                      [style.color]="
+                        s.group_type === 'experimental' ? 'var(--brand-600)' : 'var(--muted)'
+                      "
+                      style="
+                        font-size: 11px;
+                        font-weight: 700;
+                        padding: 3px 10px;
+                        border-radius: 999px;
+                      "
+                    >
+                      {{
+                        s.group_type === 'experimental'
+                          ? ('reports.experimental' | transloco)
+                          : ('reports.control' | transloco)
+                      }}
+                    </span>
+                  </td>
+                  <td style="text-align: center">{{ s.total_sessions }}</td>
+                  <td style="font-weight: 700; color: var(--brand-600); text-align: center">
+                    {{ s.avg_score ?? '—' }}
+                  </td>
+                  <td style="font-family: monospace; font-weight: 700; text-align: center">
+                    {{ s.max_score ?? '—' }}
+                  </td>
+                  <td>
+                    <span
+                      style="
+                        font-weight: 700;
+                        padding: 3px 10px;
+                        border-radius: 999px;
+                        font-size: 12px;
+                      "
+                      [style.color]="getPrecisionColor(s.avg_precision ?? 0)"
+                      [style.background]="getPrecisionColor(s.avg_precision ?? 0) + '20'"
+                    >
+                      {{ s.avg_precision ?? 0 }}%
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+    }
+
+    <!-- TAB: GRÁFICAS -->
+    @if (activeTab() === 'charts') {
+      <div
+        style="
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+          gap: 12px;
+          margin-bottom: 16px;
+        "
+      >
+        @for (group of ['experimental', 'control']; track group) {
+          @let gs = getGroupStats(group === 'experimental' ? 'experimental' : 'control');
+          <div class="report-section" style="margin-bottom: 0">
+            <span
+              style="
+                font-size: 11px;
+                font-weight: 700;
+                padding: 2px 10px;
+                border-radius: 999px;
+                display: inline-block;
+                margin-bottom: 10px;
+              "
+              [style.background]="group === 'experimental' ? '#1D9E7520' : '#E24B4A20'"
+              [style.color]="group === 'experimental' ? '#1D9E75' : '#E24B4A'"
+            >
+              {{
+                group === 'experimental'
+                  ? ('reports.experimental' | transloco)
+                  : ('reports.control' | transloco)
+              }}
+            </span>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px">
+              <div style="background: var(--surface-2); border-radius: 8px; padding: 10px">
+                <p style="font-size: 11px; color: var(--muted); margin: 0 0 2px">
+                  {{ 'reports.stat_mean' | transloco }}
+                </p>
+                <p style="font-size: 18px; font-weight: 700; margin: 0">{{ gs.mean }}</p>
+              </div>
+              <div style="background: var(--surface-2); border-radius: 8px; padding: 10px">
+                <p style="font-size: 11px; color: var(--muted); margin: 0 0 2px">
+                  {{ 'reports.stat_median' | transloco }}
+                </p>
+                <p style="font-size: 18px; font-weight: 700; margin: 0">{{ gs.median }}</p>
+              </div>
+              <div style="background: var(--surface-2); border-radius: 8px; padding: 10px">
+                <p style="font-size: 11px; color: var(--muted); margin: 0 0 2px">
+                  {{ 'reports.stat_stddev' | transloco }}
+                </p>
+                <p style="font-size: 18px; font-weight: 700; margin: 0">{{ gs.stdDev }}</p>
+              </div>
+              <div style="background: var(--surface-2); border-radius: 8px; padding: 10px">
+                <p style="font-size: 11px; color: var(--muted); margin: 0 0 2px">
+                  {{ 'reports.stat_precision' | transloco }}
+                </p>
+                <p style="font-size: 18px; font-weight: 700; margin: 0">{{ gs.avgPrec }}%</p>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="report-section">
+        <p class="report-section__title">{{ 'reports.chart_precision_title' | transloco }}</p>
+        <p class="report-section__sub">{{ 'reports.chart_precision_sub' | transloco }}</p>
+        <div style="display: flex; gap: 16px; margin: 10px 0; font-size: 12px; color: var(--muted)">
+          <span
+            ><span
+              style="
+                display: inline-block;
+                width: 10px;
+                height: 10px;
+                border-radius: 2px;
+                background: #1d9e75;
+                margin-right: 4px;
+              "
+            ></span
+            >{{ 'reports.legend_exp' | transloco }}</span
+          >
+          <span
+            ><span
+              style="
+                display: inline-block;
+                width: 10px;
+                height: 10px;
+                border-radius: 2px;
+                background: #e24b4a;
+                margin-right: 4px;
+              "
+            ></span
+            >{{ 'reports.legend_ctrl' | transloco }}</span
+          >
+        </div>
+        <div style="position: relative; width: 100%; height: 280px">
+          <canvas #precisionCanvas></canvas>
+        </div>
+      </div>
+
+      <div class="report-section">
+        <p class="report-section__title">{{ 'reports.chart_responses_title' | transloco }}</p>
+        <p class="report-section__sub">{{ 'reports.chart_responses_sub' | transloco }}</p>
+        <div style="display: flex; gap: 16px; margin: 10px 0; font-size: 12px; color: var(--muted)">
+          <span
+            ><span
+              style="
+                display: inline-block;
+                width: 10px;
+                height: 10px;
+                border-radius: 2px;
+                background: #1d9e75;
+                margin-right: 4px;
+              "
+            ></span
+            >{{ 'reports.legend_correct' | transloco }}</span
+          >
+          <span
+            ><span
+              style="
+                display: inline-block;
+                width: 10px;
+                height: 10px;
+                border-radius: 2px;
+                background: #378add;
+                margin-right: 4px;
+              "
+            ></span
+            >{{ 'reports.legend_incorrect' | transloco }}</span
+          >
+        </div>
+        <div style="position: relative; width: 100%; height: 280px">
+          <canvas #responsesCanvas></canvas>
+        </div>
+      </div>
+
+      <div class="report-section">
+        <p class="report-section__title">{{ 'reports.chart_evolution_title' | transloco }}</p>
+        <p class="report-section__sub">{{ 'reports.chart_evolution_sub' | transloco }}</p>
+        <div style="display: flex; gap: 16px; margin: 10px 0; font-size: 12px; color: var(--muted)">
+          <span
+            ><span
+              style="
+                display: inline-block;
+                width: 10px;
+                height: 10px;
+                border-radius: 2px;
+                background: #1d9e75;
+                margin-right: 4px;
+              "
+            ></span
+            >{{ 'reports.legend_exp' | transloco }}</span
+          >
+          <span
+            ><span
+              style="
+                display: inline-block;
+                width: 10px;
+                height: 10px;
+                border-radius: 2px;
+                background: #e24b4a;
+                margin-right: 4px;
+              "
+            ></span
+            >{{ 'reports.legend_ctrl' | transloco }}</span
+          >
+        </div>
+        <div style="position: relative; width: 100%; height: 280px">
+          <canvas #evolutionCanvas></canvas>
+        </div>
+      </div>
+
+      <div class="report-section">
+        <p class="report-section__title">{{ 'reports.chart_stats_title' | transloco }}</p>
+        <p class="report-section__sub">{{ 'reports.chart_stats_sub' | transloco }}</p>
+        <div style="display: flex; gap: 16px; margin: 10px 0; font-size: 12px; color: var(--muted)">
+          <span
+            ><span
+              style="
+                display: inline-block;
+                width: 10px;
+                height: 10px;
+                border-radius: 2px;
+                background: #1d9e75;
+                margin-right: 4px;
+              "
+            ></span
+            >{{ 'reports.legend_exp' | transloco }}</span
+          >
+          <span
+            ><span
+              style="
+                display: inline-block;
+                width: 10px;
+                height: 10px;
+                border-radius: 2px;
+                background: #e24b4a;
+                margin-right: 4px;
+              "
+            ></span
+            >{{ 'reports.legend_ctrl' | transloco }}</span
+          >
+        </div>
+        <div style="position: relative; width: 100%; height: 280px">
+          <canvas #statsCanvas></canvas>
+        </div>
+      </div>
+    }
+
+    <!-- TAB: COMPARACIÓN -->
+    <!--@if (activeTab() === 'comparison') {
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px">
+        @for (group of ['experimental', 'control']; track group) {
+          @let gs = getTestComparisonByGroup(group === 'experimental' ? 'experimental' : 'control');
+          <div class="report-section" style="margin-bottom: 0">
+            <span
+              style="
+                font-size: 11px;
+                font-weight: 700;
+                padding: 2px 10px;
+                border-radius: 999px;
+                display: inline-block;
+                margin-bottom: 12px;
+              "
+              [style.background]="group === 'experimental' ? '#1D9E7520' : '#E24B4A20'"
+              [style.color]="group === 'experimental' ? '#1D9E75' : '#E24B4A'"
+            >
+              {{
+                group === 'experimental'
+                  ? ('reports.experimental' | transloco)
+                  : ('reports.control' | transloco)
+              }}
+            </span>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px">
+              <div
+                style="
+                  background: var(--surface-2);
+                  border-radius: 8px;
+                  padding: 10px;
+                  text-align: center;
+                "
+              >
+                <p style="font-size: 11px; color: var(--muted); margin: 0 0 4px">
+                  {{ 'reports.avg_pretest' | transloco }}
+                </p>
+                <p style="font-size: 20px; font-weight: 700; margin: 0; color: var(--brand-600)">
+                  {{ gs.avgPretest ?? '—' }}
+                </p>
+              </div>
+              <div
+                style="
+                  background: var(--surface-2);
+                  border-radius: 8px;
+                  padding: 10px;
+                  text-align: center;
+                "
+              >
+                <p style="font-size: 11px; color: var(--muted); margin: 0 0 4px">
+                  {{ 'reports.avg_posttest' | transloco }}
+                </p>
+                <p style="font-size: 20px; font-weight: 700; margin: 0; color: var(--brand-600)">
+                  {{ gs.avgPosttest ?? '—' }}
+                </p>
+              </div>
+              <div
+                style="
+                  background: var(--surface-2);
+                  border-radius: 8px;
+                  padding: 10px;
+                  text-align: center;
+                "
+              >
+                <p style="font-size: 11px; color: var(--muted); margin: 0 0 4px">
+                  {{ 'reports.gain' | transloco }}
+                </p>
+                <p
+                  style="font-size: 20px; font-weight: 700; margin: 0"
+                  [style.color]="(gs.avgGain ?? 0) > 0 ? 'var(--green)' : 'var(--red)'"
+                >
+                  {{ gs.avgGain !== null ? (gs.avgGain > 0 ? '+' : '') + gs.avgGain : '—' }}
+                </p>
+              </div>
+            </div>
+            <p style="font-size: 11px; color: var(--muted); margin-top: 8px">
+              {{ gs.completedBoth }} {{ 'reports.completed_both' | transloco }} {{ gs.count }}
+            </p>
+          </div>
+        }
+      </div>
+
+      <div class="report-section">
+        <p class="report-section__title">{{ 'reports.comparison_title' | transloco }}</p>
+        <p class="report-section__sub">{{ 'reports.comparison_sub' | transloco }}</p>
+        <div style="display: flex; gap: 16px; margin: 10px 0; font-size: 12px; color: var(--muted)">
+          <span
+            ><span
+              style="
+                display: inline-block;
+                width: 10px;
+                height: 10px;
+                border-radius: 2px;
+                background: #378add;
+                margin-right: 4px;
+              "
+            ></span
+            >{{ 'reports.legend_pretest' | transloco }}</span
+          >
+          <span
+            ><span
+              style="
+                display: inline-block;
+                width: 10px;
+                height: 10px;
+                border-radius: 2px;
+                background: #1d9e75;
+                margin-right: 4px;
+              "
+            ></span
+            >{{ 'reports.legend_posttest' | transloco }}</span
+          >
+        </div>
+        <div style="position: relative; width: 100%; height: 300px">
+          <canvas #comparisonCanvas></canvas>
+        </div>
+      </div>
+
+      <div class="report-section">
+        <p class="report-section__title">{{ 'reports.comparison_detail_title' | transloco }}</p>
+        <p class="report-section__sub">{{ 'reports.comparison_detail_sub' | transloco }}</p>
+        <table class="questions-table" style="margin-top: 12px">
+          <thead>
+            <tr>
+              <th>{{ 'reports.col_student' | transloco }}</th>
+              <th>{{ 'reports.col_sala' | transloco }}</th>
+              <th>{{ 'reports.col_group' | transloco }}</th>
+              <th>{{ 'reports.col_pretest' | transloco }}</th>
+              <th>{{ 'reports.col_posttest' | transloco }}</th>
+              <th>{{ 'reports.col_gain' | transloco }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (s of testComparison(); track s.user_id) {
+              <tr>
+                <td style="font-weight: 700">{{ s.student_name }}</td>
+                <td style="font-size: 12px">{{ s.room_name ?? '—' }}</td>
+                <td>
+                  <span
+                    style="
+                      font-size: 11px;
+                      font-weight: 700;
+                      padding: 3px 10px;
+                      border-radius: 999px;
+                    "
+                    [style.background]="
+                      s.group_type === 'experimental' ? 'var(--brand-50)' : 'var(--surface-2)'
+                    "
+                    [style.color]="
+                      s.group_type === 'experimental' ? 'var(--brand-600)' : 'var(--muted)'
+                    "
+                  >
+                    {{
+                      s.group_type === 'experimental'
+                        ? ('reports.experimental' | transloco)
+                        : ('reports.control' | transloco)
+                    }}
+                  </span>
+                </td>
+                <td style="text-align: center; font-weight: 700; color: var(--brand-600)">
+                  {{ s.pretest_score ?? '—' }}
+                </td>
+                <td style="text-align: center; font-weight: 700; color: var(--brand-600)">
+                  {{ s.posttest_score ?? '—' }}
+                </td>
+                <td
+                  style="text-align: center; font-weight: 700"
+                  [style.color]="
+                    s.knowledge_gain !== null
+                      ? s.knowledge_gain > 0
+                        ? 'var(--green)'
+                        : 'var(--red)'
+                      : 'var(--muted)'
+                  "
+                >
+                  {{
+                    s.knowledge_gain !== null
+                      ? (s.knowledge_gain > 0 ? '+' : '') + s.knowledge_gain
+                      : '—'
+                  }}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }-->
+    @if (activeTab() === 'questions') {
+      <div class="report-section">
+        <!-- Resumen top stats -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">
+          <div class="stat-pill" style="background:var(--green-bg);border-color:rgba(26,107,60,0.2)">
+            <p class="val" style="color:var(--green);font-size:16px;font-weight:600;line-height:1.3;word-break:break-word">
+              {{ filteredQuestions()[0]?.question_text }}
+            </p>
+            <p class="lbl">Más acertada</p>
+          </div>
+          <div class="stat-pill" style="background:var(--red-bg);border-color:rgba(176,48,32,0.2)">
+            <p class="val" style="color:var(--red);font-size:16px;font-weight:600;line-height:1.3;word-break:break-word">
+              {{ filteredQuestions()[filteredQuestions().length-1]?.question_text }}
+            </p>
+            <p class="lbl">Más fallada</p>
+          </div>
+          <div class="stat-pill">
+            <p class="val">{{ questions().length }}</p>
+            <p class="lbl">Preguntas evaluadas</p>
+          </div>
+        </div>
+
+        <!-- Filtros de ordenamiento -->
+        <div
+          style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap"
+        >
+          <span style="font-size: 12px; color: var(--muted); font-weight: 600">Ordenar por:</span>
+          <button
+            class="btn-sm"
+            [class.primary]="sortQBy() === 'total'"
+            [class.outline]="sortQBy() !== 'total'"
+            (click)="sortQBy.set('total')"
+          >
+            Total respuestas
+          </button>
+          <button
+            class="btn-sm"
+            [class.primary]="sortQBy() === 'success'"
+            [class.outline]="sortQBy() !== 'success'"
+            (click)="sortQBy.set('success')"
+          >
+            % Aciertos
+          </button>
+          <button
+            class="btn-sm"
+            [class.primary]="sortQBy() === 'fail'"
+            [class.outline]="sortQBy() !== 'fail'"
+            (click)="sortQBy.set('fail')"
+          >
+            % Errores
+          </button>
+          <button
+            class="btn-sm"
+            [class.primary]="sortQBy() === 'time'"
+            [class.outline]="sortQBy() !== 'time'"
+            (click)="sortQBy.set('time')"
+          >
+            Tiempo promedio
+          </button>
+          <button class="btn-sm outline" (click)="sortQAsc.update((v) => !v)">
+            {{ sortQAsc() ? '↑' : '↓' }}
+          </button>
+        </div>
+
+        <!-- Tabla -->
+        @if (questions().length === 0) {
+          <div class="report-empty">No hay datos de respuestas aún.</div>
+        } @else {
+          <table class="questions-table">
+            <thead>
+              <tr>
+                <th>PREGUNTA</th>
+                <th>CATEGORÍA</th>
+                <th>DIFICULTAD</th>
+                <th>RESPONDIDA</th>
+                <th>% ACIERTOS</th>
+                <th>DISTRIBUCIÓN</th>
+                <th>TIEMPO PROM.</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (q of filteredQuestions(); track q.question_id) {
+                <tr>
+                  <td class="td-text" style="max-width: 280px">{{ q.question_text }}</td>
+                  <td style="font-size: 12px">{{ q.category_name }}</td>
+                  <td>
+                    <span class="diff-dot" [class]="q.difficulty"></span>
+                    {{
+                      q.difficulty === 'easy'
+                        ? 'Fácil'
+                        : q.difficulty === 'medium'
+                          ? 'Medio'
+                          : 'Difícil'
+                    }}
+                  </td>
+                  <td style="text-align: center; font-weight: 700">{{ q.total_answers }}</td>
+                  <td>
+                    <!-- Barra de progreso -->
+                    <div style="display: flex; align-items: center; gap: 8px">
+                      <div
+                        style="
+                          flex: 1;
+                          height: 6px;
+                          background: var(--border2);
+                          border-radius: 999px;
+                          overflow: hidden;
+                        "
+                      >
+                        <div
+                          [style.width.%]="q.success_rate"
+                          [style.background]="
+                            q.success_rate >= 80
+                              ? 'var(--green)'
+                              : q.success_rate >= 60
+                                ? 'var(--amber)'
+                                : 'var(--red)'
+                          "
+                          style="height: 100%; border-radius: 999px; transition: width 0.4s"
+                        ></div>
+                      </div>
+                      <span
+                        style="
+                          font-size: 12px;
+                          font-weight: 700;
+                          min-width: 36px;
+                          text-align: right;
+                        "
+                        [style.color]="
+                          q.success_rate >= 80
+                            ? 'var(--green)'
+                            : q.success_rate >= 60
+                              ? 'var(--amber)'
+                              : 'var(--red)'
+                        "
+                      >
+                        {{ q.success_rate }}%
+                      </span>
+                    </div>
+                  </td>
+                  <td>
+                    <!-- Distribución de opciones -->
+                    <div style="display: flex; gap: 4px; align-items: center">
+                      @for (opt of ['a', 'b', 'c', 'd']; track opt) {
+                        <div
+                          style="
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                            gap: 2px;
+                          "
+                        >
+                          <div
+                            [style.height.px]="20"
+                            [style.width.px]="18"
+                            [style.background]="
+                              opt === q.correct_answer
+                                ? 'var(--green)'
+                                : opt === getMostSelectedOption(q) && opt !== q.correct_answer
+                                  ? 'var(--red)'
+                                  : 'var(--border2)'
+                            "
+                            [style.opacity]="q['count_' + opt] > 0 ? '1' : '0.3'"
+                            style="border-radius: 3px; transition: all 0.2s"
+                            [title]="
+                              'Opción ' + opt.toUpperCase() + ': ' + q['count_' + opt] + ' veces'
+                            "
+                          ></div>
+                          <span style="font-size: 9px; font-weight: 700; color: var(--muted)">
+                            {{ opt.toUpperCase() }}
+                          </span>
+                        </div>
+                      }
+                    </div>
+                  </td>
+                  <td style="font-family: monospace; font-weight: 700; text-align: center">
+                    {{ q.avg_time_sec }}s
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+    }
   }
 </div>

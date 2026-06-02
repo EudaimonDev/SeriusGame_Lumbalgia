@@ -10,25 +10,29 @@ export class GameService {
 
   constructor(private http: HttpClient) {}
 
-  startSession(sessionType: 'pretest' | 'game' | 'posttest') {
-    return this.http.post<{ data: StartSessionResponse }>(`${this.api}/game/start`, {
-      session_type: sessionType
-    });
-  }
+  startSession(language: string = 'es') {
+  //startSession(type: string, language: string = 'es') {
+  return this.http.post<{ data: any }>(`${this.api}/game/start`, {
+    session_type: 'game', // ── TIPO FIJO POR AHORA',
+    language
+  });
+}
 
   sendAnswer(
     sessionId:      number,
     questionId:     number,
     selectedAnswer: string,
     responseTimeMs: number,
-    livesLeft:      number
+    livesLeft:      number,
+    language:       string
   ) {
     return this.http.post<{ data: AnswerResponse }>(`${this.api}/game/answer`, {
       session_id:       sessionId,
       question_id:      questionId,
       selected_answer:  selectedAnswer,
       response_time_ms: responseTimeMs,
-      lives_left:       livesLeft
+      lives_left:       livesLeft,
+      language
     });
   }
 

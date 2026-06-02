@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { AdminQuestion } from '../../models/question.model';
-
+import { SessionEvolution, StudentStat,TestComparison } from '../../models/result.model'; // ← agrega esta línea
 @Injectable({ providedIn: 'root' })
 export class AdminService {
   private api = environment.apiUrl;
@@ -11,7 +11,16 @@ export class AdminService {
   constructor(private http: HttpClient) {}
 
   getQuestions(filters: any = {}) {
-    return this.http.get<{ data: AdminQuestion[] }>(`${this.api}/admin/questions`, { params: filters });
+    return this.http.get<{ data: AdminQuestion[] }>(
+      `${this.api}/admin/questions`,
+      { params: filters }
+    );
+  }
+
+  getReportQuestions(roomId?: number) {
+    const params: Record<string, string> = {};
+    if (roomId) params['room_id'] = roomId.toString();
+    return this.http.get<{ data: any[] }>(`${this.api}/admin/reports/questions`, { params });
   }
 
   createQuestion(data: any) {
@@ -26,8 +35,10 @@ export class AdminService {
     return this.http.delete<{ data: null }>(`${this.api}/admin/questions/${id}`);
   }
 
-  getCategories() {
-    return this.http.get<{ data: any[] }>(`${this.api}/admin/categories`);
+  getCategories(lang?: string) {
+    const params: Record<string, string> = {};
+    if (lang) params['lang'] = lang;
+    return this.http.get<{ data: any[] }>(`${this.api}/admin/categories`, { params });
   }
 
   createCategory(data: { name: string; description: string }) {
@@ -65,4 +76,30 @@ deleteCategory(id: number) {
   }) {
     return this.http.post<{ data: any }>(`${this.api}/admin/questions/generate`, data);
   }
+
+  getReportRooms() {
+  return this.http.get<{ data: any[] }>(`${this.api}/admin/reports/rooms`);
+}
+
+getReportStudents(roomId?: number) {
+  const params: any = {};
+  if (roomId) params['room_id'] = roomId.toString();
+  return this.http.get<{ data: any[] }>(`${this.api}/admin/reports/students`, { params });
+}
+
+getReportEvolution(roomId?: number) {
+  const params: any = {};
+  if (roomId) params['room_id'] = roomId.toString();
+  return this.http.get<{ data: SessionEvolution[] }>(`${this.api}/admin/reports/evolution`, { params });
+}
+
+getReportStats(roomId?: number) {
+  const params: any = {};
+  if (roomId) params['room_id'] = roomId.toString();
+  return this.http.get<{ data: StudentStat[] }>(`${this.api}/admin/reports/stats`, { params });
+}
+
+getReportTestComparison() {
+  return this.http.get<{ data: TestComparison[] }>(`${this.api}/admin/reports/testcomparison`);
+}
 }

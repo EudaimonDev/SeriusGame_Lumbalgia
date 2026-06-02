@@ -1,8 +1,9 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoModule } from '@jsverse/transloco';
 import { AuthService } from '../../core/services/auth.service';
 import { GameConfigService } from '../../core/services/game-config.service';
+import { LanguageService } from '../../core/services/language.service';
 import { RankingItem } from '../../models/game-config.model';
 
 @Component({
@@ -11,19 +12,28 @@ import { RankingItem } from '../../models/game-config.model';
   imports: [RouterLink, TranslocoModule],
   templateUrl: './ranking.component.html'
 })
-export class RankingComponent implements OnInit {
+export class RankingComponent implements OnInit, OnDestroy {
   private configSvc = inject(GameConfigService);
   auth              = inject(AuthService);
+  langSvc           = inject(LanguageService);
 
-  ranking    = signal<RankingItem[]>([]);
-  myPosition = signal<RankingItem | null>(null);
-  loading    = signal(true);
-  isDefeat   = signal(false);
+  ranking     = signal<RankingItem[]>([]);
+  myPosition  = signal<RankingItem | null>(null);
+  loading     = signal(true);
+  isDefeat    = signal(false);
+  defeatStats = signal<{ score: number; total: number; percentage: number } | null>(null);
 
   ngOnInit(): void {
+    document.body.classList.add('rpg-theme');
     const result = sessionStorage.getItem('gameResult');
     this.isDefeat.set(result === 'defeat');
     sessionStorage.removeItem('gameResult');
+
+    const stats = sessionStorage.getItem('defeatStats');
+    if (stats) {
+      this.defeatStats.set(JSON.parse(stats));
+      sessionStorage.removeItem('defeatStats');
+    }
 
     this.configSvc.getRanking().subscribe({
       next: res => {
@@ -41,6 +51,10 @@ export class RankingComponent implements OnInit {
     return '';
   }
 
+  ngOnDestroy(): void {
+    document.body.classList.remove('rpg-theme');
+  }
+
   getPrecisionColor(precision: number): string {
     if (precision >= 80) return 'var(--green)';
     if (precision >= 60) return 'var(--amber)';
@@ -48,10 +62,10 @@ export class RankingComponent implements OnInit {
   }
 
   getStars(percentage: number): boolean[] {
-  const count = percentage === 100 ? 5 :
-                percentage >= 80  ? 4 :
-                percentage >= 60  ? 3 :
-                percentage >= 40  ? 2 : 1;
-  return Array(5).fill(false).map((_, i) => i < count);
-}
+    const count = percentage === 100 ? 5 :
+                  percentage >= 80   ? 4 :
+                  percentage >= 60   ? 3 :
+                  percentage >= 40   ? 2 : 1;
+    return Array(5).fill(false).map((_, i) => i < count);
+  }
 }

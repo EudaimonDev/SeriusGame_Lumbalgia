@@ -19,6 +19,7 @@ class AdminController {
         $filters = [
             'difficulty'  => $request->query['difficulty']  ?? null,
             'category_id' => $request->query['category_id'] ?? null,
+            'language'    => $request->query['language']    ?? null,  // ← agrega esto
         ];
 
         $questions = $this->questionModel->all($filters);
@@ -66,11 +67,29 @@ class AdminController {
     }
 
     /**
-     * GET /api/admin/categories
+     * GET /api/admin/categories?lang=en
      */
     public function categories(Request $request, array $payload): void {
-        $stmt = Database::connect()->query('SELECT * FROM categories ORDER BY id');
-        Response::success($stmt->fetchAll());
+        $lang = $request->query['lang'] ?? 'es';
+        $db   = Database::connect();
+
+        $stmt = $db->query('SELECT * FROM categories ORDER BY id');
+        $cats = $stmt->fetchAll();
+
+        // Si el idioma es inglés y tiene traducción, usar name_en
+        if ($lang === 'en') {
+            $cats = array_map(function($cat) {
+                return [
+                    'id'          => $cat['id'],
+                    'name'        => !empty($cat['name_en']) ? $cat['name_en'] : $cat['name'],
+                    'description' => !empty($cat['description_en']) ? $cat['description_en'] : $cat['description'],
+                    'name_es'     => $cat['name'],
+                    'name_en'     => $cat['name_en'] ?? null,
+                ];
+            }, $cats);
+        }
+
+        Response::success($cats);
     }
 
     // --- Helper ---
@@ -146,6 +165,7 @@ public function generate(Request $request, array $payload): void {
                 'option_d'       => $q['option_d']      ?? '',
                 'correct_answer' => strtolower($q['correct_answer']),
                 'feedback_text'  => $q['feedback_text'] ?? '',
+                'language'       => $language === 'english' ? 'en' : 'es',  // ← agrega esto
             ]);
 
             Database::connect()
@@ -443,5 +463,229 @@ public function destroyCategory(Request $request, array $payload, string $id): v
 
     $db->prepare('DELETE FROM categories WHERE id = ?')->execute([(int) $id]);
     Response::success(null, 'Categoría eliminada');
+}
+
+/**
+ * GET /api/admin/reports/rooms
+ */
+public function reportRooms(Request $request, array $payload): void {
+    $db = Database::connect();
+
+    $rooms = $db->query(
+        'SELECT r.id, r.name, r.code, r.group_type,
+                COUNT(DISTINCT u.id) AS total_students,
+                COUNT(DISTINCT gs.id) AS total_sessions,
+                ROUND(AVG(gs.score), 1) AS avg_score,
+                ROUND(AVG(
+                    CASE WHEN gs.total_questions > 0
+                    THEN (gs.score / gs.total_questions) * 100
+                    ELSE 0 END
+                ), 1) AS avg_precision,
+                MAX(gs.score) AS max_score
+         FROM rooms r
+         LEFT JOIN users u ON u.room_id = r.id
+         LEFT JOIN game_sessions gs ON gs.user_id = u.id AND gs.ended_at IS NOT NULL
+         WHERE r.is_active = 1
+         GROUP BY r.id
+         ORDER BY avg_precision DESC'
+    )->fetchAll();
+
+    Response::success($rooms);
+}
+
+/**
+ * GET /api/admin/reports/students
+ */
+public function reportStudents(Request $request, array $payload): void {
+    $db = Database::connect();
+
+    $roomId = $request->query['room_id'] ?? null;
+
+    $where = $roomId ? 'AND u.room_id = ' . (int)$roomId : '';
+
+    $students = $db->query(
+        "SELECT u.id, u.name, u.age, u.group_type,
+                r.name AS room_name, r.code AS room_code,
+                COUNT(DISTINCT gs.id) AS total_sessions,
+                ROUND(AVG(gs.score), 1) AS avg_score,
+                MAX(gs.score) AS max_score,
+                ROUND(AVG(
+                    CASE WHEN gs.total_questions > 0
+                    THEN (gs.score / gs.total_questions) * 100
+                    ELSE 0 END
+                ), 1) AS avg_precision,
+                SUM(gs.score) AS total_score
+         FROM users u
+         LEFT JOIN rooms r ON r.id = u.room_id
+         LEFT JOIN game_sessions gs ON gs.user_id = u.id AND gs.ended_at IS NOT NULL
+         WHERE u.role = 'student' $where
+         GROUP BY u.id
+         ORDER BY avg_precision DESC"
+    )->fetchAll();
+
+    Response::success($students);
+}
+
+/**
+ * GET /api/admin/reports/evolution
+ */
+public function reportEvolution(Request $request, array $payload): void {
+    $db     = Database::connect();
+    $roomId = $request->query['room_id'] ?? null;
+    $where  = $roomId ? 'AND u.room_id = ' . (int)$roomId : '';
+
+    $rows = $db->query(
+        "SELECT
+            u.id        AS user_id,
+            u.name      AS student_name,
+            u.group_type,
+            r.name      AS room_name,
+            gs.score,
+            gs.total_questions,
+            gs.started_at,
+            ROUND(
+                CASE WHEN gs.total_questions > 0
+                THEN (gs.score / gs.total_questions) * 100
+                ELSE 0 END
+            , 1) AS `precision`
+        FROM game_sessions gs
+        JOIN users u ON u.id = gs.user_id
+        LEFT JOIN rooms r ON r.id = u.room_id
+        WHERE u.role = 'student'
+        AND gs.score > 0  -- ← agrega esto
+        $where
+        ORDER BY u.id, gs.started_at ASC"
+    )->fetchAll();
+    // Agrega número de sesión por estudiante
+    $sessionCount = [];
+    foreach ($rows as &$row) {
+        $uid = $row['user_id'];
+        $sessionCount[$uid] = ($sessionCount[$uid] ?? 0) + 1;
+        $row['session_number'] = $sessionCount[$uid];
+    }
+
+    Response::success($rows);
+}
+
+/**
+ * GET /api/admin/reports/stats
+ */
+public function reportStats(Request $request, array $payload): void {
+    $db     = Database::connect();
+    $roomId = $request->query['room_id'] ?? null;
+    $where  = $roomId ? 'AND u.room_id = ' . (int)$roomId : '';
+
+    // Datos agregados por estudiante
+    $students = $db->query(
+        "SELECT
+            u.id        AS user_id,
+            u.name      AS student_name,
+            u.group_type,
+            r.name      AS room_name,
+            COUNT(gs.id) AS total_sessions,
+            ROUND(AVG(gs.score), 2) AS avg_score,
+            ROUND(AVG(
+                CASE WHEN gs.total_questions > 0
+                THEN (gs.score / gs.total_questions) * 100
+                ELSE 0 END
+            ), 2) AS avg_precision,
+            MAX(gs.score) AS max_score
+         FROM users u
+         LEFT JOIN rooms r ON r.id = u.room_id
+         LEFT JOIN game_sessions gs ON gs.user_id = u.id
+         WHERE u.role = 'student' $where
+         GROUP BY u.id
+         ORDER BY u.group_type, avg_precision DESC"
+    )->fetchAll();
+
+    // Scores individuales por estudiante para mediana/desviación en frontend
+    $scoresRaw = $db->query(
+        "SELECT gs.user_id, gs.score
+        FROM game_sessions gs
+        JOIN users u ON u.id = gs.user_id
+        WHERE u.role = 'student'
+        AND gs.score > 0  -- ← agrega esto también
+        $where
+        ORDER BY gs.user_id"
+    )->fetchAll();
+
+    $scoresByUser = [];
+    foreach ($scoresRaw as $s) {
+        $scoresByUser[$s['user_id']][] = (float)$s['score'];
+    }
+
+    foreach ($students as &$student) {
+        $student['scores'] = $scoresByUser[$student['user_id']] ?? [];
+    }
+
+    Response::success($students);
+}
+
+/**
+ * GET /api/admin/reports/testcomparison
+ */
+public function reportTestComparison(Request $request, array $payload): void {
+    $db = Database::connect();
+
+    $rows = $db->prepare(
+        "SELECT
+            u.id          AS user_id,
+            u.name        AS student_name,
+            u.group_type,
+            r.name        AS room_name,
+            r.id          AS room_id,
+            MAX(CASE WHEN tr.test_type = 'pretest'  THEN tr.score END) AS pretest_score,
+            MAX(CASE WHEN tr.test_type = 'posttest' THEN tr.score END) AS posttest_score,
+            MAX(tr.knowledge_gain) AS knowledge_gain
+         FROM users u
+         LEFT JOIN rooms r ON r.id = u.room_id
+         LEFT JOIN test_results tr ON tr.user_id = u.id
+         WHERE u.role = 'student'
+         GROUP BY u.id
+         ORDER BY u.group_type, r.id"
+    );
+    $rows->execute();
+    $data = $rows->fetchAll();
+
+    Response::success($data);
+}
+
+/**
+ * GET /api/admin/reports/questions
+ */
+public function reportQuestions(Request $request, array $payload): void {
+    $db     = Database::connect();
+    $roomId = $request->query['room_id'] ?? null;
+    $where  = $roomId
+        ? 'AND u.room_id = ' . (int)$roomId
+        : '';
+
+    $rows = $db->query(
+        "SELECT
+            q.id                                        AS question_id,
+            q.question_text,
+            q.difficulty,
+            c.name                                      AS category_name,
+            COUNT(sa.id)                                AS total_answers,
+            SUM(sa.is_correct)                          AS total_correct,
+            COUNT(sa.id) - SUM(sa.is_correct)          AS total_incorrect,
+            ROUND(SUM(sa.is_correct) / COUNT(sa.id) * 100, 1) AS success_rate,
+            ROUND(AVG(sa.response_time_ms) / 1000, 1)  AS avg_time_sec,
+            SUM(sa.selected_answer = 'a')               AS count_a,
+            SUM(sa.selected_answer = 'b')               AS count_b,
+            SUM(sa.selected_answer = 'c')               AS count_c,
+            SUM(sa.selected_answer = 'd')               AS count_d,
+            q.correct_answer
+         FROM session_answers sa
+         JOIN game_sessions gs ON gs.id = sa.session_id
+         JOIN users u ON u.id = gs.user_id
+         JOIN questions q ON q.id = sa.question_id
+         LEFT JOIN categories c ON c.id = q.category_id
+         WHERE u.role = 'student' $where
+         GROUP BY q.id
+         ORDER BY total_answers DESC"
+    )->fetchAll();
+
+    Response::success($rows);
 }
 }

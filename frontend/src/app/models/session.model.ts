@@ -33,4 +33,5 @@ export interface AnswerResponse {
   score?:          number;
   total?:          number;
   percentage?:     number;
+  streak?:         number;
 }

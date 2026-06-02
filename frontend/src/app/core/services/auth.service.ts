@@ -1,4 +1,3 @@
-// src/app/core/services/auth.service.ts
 import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
@@ -10,31 +9,63 @@ import { AuthResponse, User } from '../../models/user.model';
 export class AuthService {
   private api = environment.apiUrl;
   currentUser = signal<User | null>(this.loadUser());
+  currentRoom = signal<any | null>(this.loadRoom());
 
   constructor(private http: HttpClient, private router: Router) {}
 
-  // Estudiante — solo nombre y edad
   studentLogin(name: string, age: number) {
     return this.http.post<{ data: AuthResponse }>(`${this.api}/auth/student`, { name, age })
       .pipe(tap(res => this.saveSession(res.data)));
   }
 
-  // Admin — email y password
   adminLogin(email: string, password: string) {
     return this.http.post<{ data: AuthResponse }>(`${this.api}/auth/admin/login`, { email, password })
       .pipe(tap(res => this.saveSession(res.data)));
   }
 
-  // Recuperar contraseña
   forgotPassword(email: string) {
     return this.http.post<{ message: string }>(`${this.api}/auth/forgot-password`, { email });
+  }
+
+  joinRoom(name: string, code: string, age: number) {
+    return this.http.post<{ data: any }>(`${this.api}/rooms/join`, { name, code, age })
+      .pipe(tap(res => {
+        // Limpiar sesión de juego anterior
+        sessionStorage.removeItem('gameState');
+        sessionStorage.removeItem('feedback');
+        sessionStorage.removeItem('gameResult');
+        sessionStorage.removeItem('defeatStats');
+        this.saveSession(res.data);
+        // Guardar datos de la sala incluyendo la fase
+        if (res.data.room) {
+          localStorage.setItem('room', JSON.stringify(res.data.room));
+          this.currentRoom.set(res.data.room);
+        }
+      }));
   }
 
   logout(): void {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('room');
+    sessionStorage.removeItem('gameState');
+    sessionStorage.removeItem('feedback');
+    sessionStorage.removeItem('gameResult');
+    sessionStorage.removeItem('defeatStats');
     this.currentUser.set(null);
+    this.currentRoom.set(null);
+    sessionStorage.removeItem('testMode');
     this.router.navigate(['/login']);
+  }
+
+  // Devuelve la fase activa de la sala del estudiante
+  getRoomPhase(): 'pretest' | 'game' | 'posttest' {
+    return this.currentRoom()?.phase ?? 'game';
+  }
+
+  // Verifica si el estudiante tiene sala asignada
+  hasRoom(): boolean {
+    return !!this.currentRoom();
   }
 
   getToken():   string | null { return localStorage.getItem('token'); }
@@ -53,8 +84,8 @@ export class AuthService {
     return raw ? JSON.parse(raw) : null;
   }
 
-  joinRoom(name: string, code: string) {
-    return this.http.post<{ data: AuthResponse }>(`${this.api}/rooms/join`, { name, code })
-      .pipe(tap(res => this.saveSession(res.data)));
+  private loadRoom(): any | null {
+    const raw = localStorage.getItem('room');
+    return raw ? JSON.parse(raw) : null;
   }
 }

@@ -9,6 +9,12 @@
   <style>
     html, body { margin: 0; padding: 0; width: 100%; overflow-x: hidden; }
   </style>
+  <script>
+  const redirect = new URLSearchParams(window.location.search).get('redirect');
+  if (redirect) {
+    window.history.replaceState(null, '', redirect);
+  }
+</script>
 </head>
 <body>
   <app-root></app-root>

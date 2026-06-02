@@ -3,11 +3,12 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ProfileService } from '../../core/services/profile.service';
 import { StudentProfile } from '../../models/user.model';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, TranslocoModule],
   templateUrl: './profile.component.html'
 })
 export class ProfileComponent implements OnInit {
@@ -16,11 +17,16 @@ export class ProfileComponent implements OnInit {
   loading = signal(true);
 
   ngOnInit(): void {
+    document.body.classList.add('rpg-theme');
     this.profileSvc.getProfile().subscribe({
       next: res => {
         this.profile.set(res.data);
         this.loading.set(false);
       }
     });
+  }
+
+  ngOnDestroy(): void {
+    document.body.classList.add('rpg-theme');
   }
 }

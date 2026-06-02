@@ -1,88 +1,87 @@
-<!-- src/app/modules/admin/questions/questions.component.html -->
 <div class="admin-body">
 
   <!-- Toolbar -->
   <div class="admin-toolbar">
-  <h2>Banco de preguntas</h2>
+    <h2>{{ 'questions.title' | transloco }}</h2>
 
-  <!-- Ordenar -->
-  <div class="admin-filter-group">
-    <select class="admin-select admin-select--joined-left"
-            (change)="sortBy.set($any($event.target).value)">
-      <option value="id">ID</option>
-      <option value="difficulty">Dificultad</option>
-      <option value="category">Categoría</option>
+    <div class="admin-filter-group">
+      <select class="admin-select admin-select--joined-left"
+              (change)="sortBy.set($any($event.target).value)">
+        <option value="id">{{ 'questions.sort_id' | transloco }}</option>
+        <option value="difficulty">{{ 'questions.sort_difficulty' | transloco }}</option>
+        <option value="category">{{ 'questions.sort_category' | transloco }}</option>
+      </select>
+      <button class="admin-sort-btn" (click)="toggleSortDir()"
+              [title]="sortAsc() ? 'Ascendente' : 'Descendente'">
+        {{ sortAsc() ? '↑' : '↓' }}
+      </button>
+    </div>
+
+    <select class="admin-select"
+            (change)="filterDifficulty.set($any($event.target).value)">
+      <option value="">{{ 'questions.all_difficulties' | transloco }}</option>
+      <option value="easy">🟢 {{ 'questions.easy' | transloco }}</option>
+      <option value="medium">🟡 {{ 'questions.medium' | transloco }}</option>
+      <option value="hard">🔴 {{ 'questions.hard' | transloco }}</option>
     </select>
-    <button class="admin-sort-btn"
-            (click)="toggleSortDir()"
-            [title]="sortAsc() ? 'Ascendente' : 'Descendente'">
-      {{ sortAsc() ? '↑' : '↓' }}
+
+    <select class="admin-select"
+            (change)="filterCategory.set($any($event.target).value)">
+      <option value="">{{ 'questions.all_categories' | transloco }}</option>
+      @for (c of categories(); track c.id) {
+        <option [value]="c.id">{{ c.name }}</option>
+      }
+    </select>
+
+    <span class="admin-filter-count">
+      {{ filteredQuestions().length }} {{ 'questions.col_questions_count' | transloco }}
+    </span>
+
+    <button class="btn-sm primary" (click)="openImport()">
+      {{ 'questions.btn_import' | transloco }}
+    </button>
+    <button class="btn-sm outline" (click)="openGenerate()">
+      {{ 'questions.btn_generate' | transloco }}
+    </button>
+    <button class="btn-sm outline" (click)="openCategories()">
+      {{ 'questions.btn_categories' | transloco }}
+    </button>
+    <button class="btn-sm outline" (click)="openCreate()">
+      {{ 'questions.btn_new' | transloco }}
     </button>
   </div>
-
-  <!-- Filtrar dificultad -->
-  <select class="admin-select"
-          (change)="filterDifficulty.set($any($event.target).value)">
-    <option value="">Todas las dificultades</option>
-    <option value="easy">🟢 Fácil</option>
-    <option value="medium">🟡 Medio</option>
-    <option value="hard">🔴 Difícil</option>
-  </select>
-
-  <!-- Filtrar categoría -->
-  <select class="admin-select"
-          (change)="filterCategory.set($any($event.target).value)">
-    <option value="">Todas las categorías</option>
-    @for (c of categories(); track c.id) {
-      <option [value]="c.id">{{ c.name }}</option>
-    }
-  </select>
-
-  <!-- Contador -->
-  <span class="admin-filter-count">
-    {{ filteredQuestions().length }} pregunta(s)
-  </span>
-
-  <button class="btn-sm primary" (click)="openImport()">↑ Importar</button>
-  <button class="btn-sm outline" (click)="openGenerate()">✦ IA</button>
-  <button class="btn-sm outline" (click)="openCategories()">
-  🗂️ Categorías
-</button>
-  <button class="btn-sm outline" (click)="openCreate()">+ Nueva</button>
-</div>
 
   <!-- ── PANEL IMPORTAR ── -->
   @if (showImport()) {
     <div class="import-panel">
-      <p class="panel-title">Importar preguntas desde CSV o TXT</p>
+      <p class="panel-title">{{ 'questions.import_title' | transloco }}</p>
       <p class="panel-hint">
-        Formato requerido (primera fila es encabezado):<br>
+        {{ 'questions.import_format' | transloco }}<br>
         <code>category_id, difficulty, question_text, option_a, option_b, option_c, option_d, correct_answer, feedback_text</code>
       </p>
-
       <div class="file-drop">
         <input type="file" accept=".csv,.txt" id="file-input" (change)="onFileSelected($event)">
         <label for="file-input">
           @if (selectedFile()) {
             <strong>{{ selectedFile()!.name }}</strong>
           } @else {
-            Haz click para seleccionar un archivo CSV o TXT
+            {{ 'questions.import_click' | transloco }}
           }
         </label>
       </div>
-
       <div style="display:flex;gap:10px;margin-top:14px">
         <button class="btn-sm primary"
                 [disabled]="!selectedFile() || importing()"
                 (click)="importFile()">
-          {{ importing() ? 'Importando...' : 'Importar' }}
+          {{ importing() ? ('questions.importing' | transloco) : ('questions.btn_import_action' | transloco) }}
         </button>
-        <button class="btn-sm outline" (click)="showImport.set(false)">Cancelar</button>
+        <button class="btn-sm outline" (click)="showImport.set(false)">
+          {{ 'questions.btn_cancel' | transloco }}
+        </button>
       </div>
-
       @if (importResult(); as r) {
         <div class="import-result">
-          <p class="result-ok">✓ {{ r.imported }} preguntas importadas correctamente</p>
+          <p class="result-ok">✓ {{ r.imported }} {{ 'questions.col_questions_count' | transloco }}</p>
           @if (r.errors?.length) {
             <p class="result-err">{{ r.errors.length }} filas con errores:</p>
             @for (e of r.errors; track e) {
@@ -98,52 +97,56 @@
   <!-- ── PANEL GENERAR CON IA ── -->
   @if (showGenerate()) {
     <form [formGroup]="generateForm" (ngSubmit)="generate()" class="generate-panel">
-      <p class="panel-title">Generar preguntas con IA</p>
-      <p class="panel-hint">Las preguntas se guardarán como pendientes hasta que las verifiques.</p>
-
+      <p class="panel-title">{{ 'questions.generate_title' | transloco }}</p>
+      <p class="panel-hint">{{ 'questions.generate_hint' | transloco }}</p>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
         <div class="form-group">
-          <label>Categoría</label>
+          <label>{{ 'questions.label_category' | transloco }}</label>
           <select formControlName="category_id" (change)="onCategoryChange()">
-            <option value="">Selecciona...</option>
+            <option value="">-- Selecciona categoría --</option>
             @for (c of categories(); track c.id) {
               <option [value]="c.id">{{ c.name }}</option>
             }
           </select>
+          @if (generateForm.get('category_id')?.invalid && generateForm.get('category_id')?.touched) {
+            <span style="font-size:11px;color:var(--red);margin-top:4px;display:block">
+              ⚠️ Debes seleccionar una categoría
+            </span>
+          }
         </div>
         <div class="form-group">
-          <label>Dificultad</label>
+          <label>{{ 'questions.label_difficulty' | transloco }}</label>
           <select formControlName="difficulty">
-            <option value="easy">Fácil</option>
-            <option value="medium">Medio</option>
-            <option value="hard">Difícil</option>
+            <option value="easy">{{ 'questions.easy' | transloco }}</option>
+            <option value="medium">{{ 'questions.medium' | transloco }}</option>
+            <option value="hard">{{ 'questions.hard' | transloco }}</option>
           </select>
         </div>
         <div class="form-group">
-          <label>Idioma</label>
+          <label>{{ 'questions.label_language' | transloco }}</label>
           <select formControlName="language">
-            <option value="español">Español</option>
-            <option value="english">Inglés</option>
+            <option value="español">{{ 'questions.lang_es' | transloco }}</option>
+            <option value="english">{{ 'questions.lang_en' | transloco }}</option>
           </select>
         </div>
         <div class="form-group">
-          <label>Cantidad (máx 10)</label>
+          <label>{{ 'questions.label_count' | transloco }}</label>
           <input type="number" formControlName="count" min="1" max="10">
         </div>
       </div>
-
       <div style="display:flex;gap:10px">
         <button type="submit" class="btn-sm primary"
-                [disabled]="generateForm.invalid || generating()">
-          {{ generating() ? 'Generando...' : 'Generar' }}
+                [disabled]="generating()"
+                (click)="generateForm.markAllAsTouched()">
+          {{ generating() ? ('questions.generating' | transloco) : ('questions.btn_generate_action' | transloco) }}
         </button>
-        <button type="button" class="btn-sm outline"
-                (click)="showGenerate.set(false)">Cancelar</button>
+        <button type="button" class="btn-sm outline" (click)="showGenerate.set(false)">
+          {{ 'questions.btn_cancel' | transloco }}
+        </button>
       </div>
-
       @if (generateResult(); as r) {
         <div class="import-result">
-          <p class="result-ok">✓ {{ r.generated }} preguntas generadas</p>
+          <p class="result-ok">✓ {{ r.generated }} {{ 'questions.col_questions_count' | transloco }}</p>
           <p class="result-hint">{{ r.notice }}</p>
         </div>
       }
@@ -151,84 +154,81 @@
   }
 
   <!-- ── PANEL CATEGORÍAS ── -->
-@if (showCategories()) {
-  <div class="crud-panel">
-    <p class="panel-title">Gestión de categorías</p>
-
-    @if (catError()) {
-      <div class="auth-alert" style="margin-bottom:14px">{{ catError() }}</div>
-    }
-
-    <!-- Formulario crear/editar -->
-    <form [formGroup]="catForm" (ngSubmit)="saveCat()"
-          style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;
-                 align-items:end;margin-bottom:20px">
-      <div class="form-group" style="margin-bottom:0">
-        <label>Nombre de la categoría</label>
-        <input type="text" formControlName="name" placeholder="Ej: Ergonomía postural">
-      </div>
-      <div class="form-group" style="margin-bottom:0">
-        <label>Descripción (opcional)</label>
-        <input type="text" formControlName="description" placeholder="Breve descripción...">
-      </div>
-      <div style="display:flex;gap:8px">
-        <button type="submit" class="btn-sm primary" [disabled]="catForm.invalid">
-          {{ editingCatId() ? 'Actualizar' : 'Crear' }}
-        </button>
-        @if (editingCatId()) {
-          <button type="button" class="btn-sm outline" (click)="cancelCat()">
-            Cancelar
+  @if (showCategories()) {
+    <div class="crud-panel">
+      <p class="panel-title">{{ 'questions.cat_title' | transloco }}</p>
+      @if (catError()) {
+        <div class="auth-alert" style="margin-bottom:14px">{{ catError() }}</div>
+      }
+      <form [formGroup]="catForm" (ngSubmit)="saveCat()"
+            style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;
+                   align-items:end;margin-bottom:20px">
+        <div class="form-group" style="margin-bottom:0">
+          <label>{{ 'questions.cat_name' | transloco }}</label>
+          <input type="text" formControlName="name"
+                 [placeholder]="'questions.cat_name_placeholder' | transloco">
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label>{{ 'questions.cat_desc' | transloco }}</label>
+          <input type="text" formControlName="description"
+                 [placeholder]="'questions.cat_desc_placeholder' | transloco">
+        </div>
+        <div style="display:flex;gap:8px">
+          <button type="submit" class="btn-sm primary" [disabled]="catForm.invalid">
+            {{ editingCatId() ? ('questions.btn_update' | transloco) : ('questions.btn_create' | transloco) }}
           </button>
-        }
-      </div>
-    </form>
-
-    <!-- Tabla de categorías -->
-    <table class="questions-table">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Nombre</th>
-          <th>Descripción</th>
-          <th>Preguntas</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (cat of categories(); track cat.id) {
-          <tr [style.background]="editingCatId() === cat.id ? 'var(--brand-50)' : ''">
-            <td style="font-family:monospace;font-size:11px;color:var(--muted)">
-              {{ cat.id }}
-            </td>
-            <td style="font-weight:600">{{ cat.name }}</td>
-            <td style="color:var(--muted);font-size:13px">
-              {{ cat.description || '—' }}
-            </td>
-            <td style="font-family:monospace;font-weight:700;color:var(--brand-600)">
-              {{ questions().filter(q => q.category_id === cat.id).length }}
-            </td>
-            <td style="display:flex;gap:6px">
-              <button class="btn-sm outline" (click)="openEditCat(cat)">Editar</button>
-              <button class="btn-sm danger"  (click)="deleteCat(cat.id, cat.name)">
-                Eliminar
-              </button>
-            </td>
+          @if (editingCatId()) {
+            <button type="button" class="btn-sm outline" (click)="cancelCat()">
+              {{ 'questions.btn_cancel' | transloco }}
+            </button>
+          }
+        </div>
+      </form>
+      <table class="questions-table">
+        <thead>
+          <tr>
+            <th>{{ 'questions.col_num' | transloco }}</th>
+            <th>{{ 'questions.col_category' | transloco }}</th>
+            <th>{{ 'questions.col_desc' | transloco }}</th>
+            <th>{{ 'questions.col_questions_count' | transloco }}</th>
+            <th>{{ 'questions.col_actions' | transloco }}</th>
           </tr>
-        }
-      </tbody>
-    </table>
-
-  </div>
-}
+        </thead>
+        <tbody>
+          @for (cat of categories(); track cat.id) {
+            <tr [style.background]="editingCatId() === cat.id ? 'var(--brand-50)' : ''">
+              <td style="font-family:monospace;font-size:11px;color:var(--muted)">{{ cat.id }}</td>
+              <td style="font-weight:600">{{ cat.name }}</td>
+              <td style="color:var(--muted);font-size:13px">{{ cat.description || '—' }}</td>
+              <td style="font-family:monospace;font-weight:700;color:var(--brand-600)">
+                {{ questions().filter(q => q.category_id === cat.id).length }}
+              </td>
+              <td>
+                <div style="display:flex;gap:6px;align-items:center">
+                  <button class="btn-sm outline" (click)="openEditCat(cat)">
+                    {{ 'questions.btn_edit' | transloco }}
+                  </button>
+                  <button class="btn-sm danger" (click)="deleteCat(cat.id, cat.name)">
+                    {{ 'questions.btn_delete' | transloco }}
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
 
   <!-- ── PANEL CRUD MANUAL ── -->
   @if (showForm()) {
     <form [formGroup]="form" (ngSubmit)="save()" class="crud-panel">
-      <p class="panel-title">{{ editingId() ? 'Editar pregunta' : 'Nueva pregunta' }}</p>
-
+      <p class="panel-title">
+        {{ editingId() ? ('questions.crud_title_edit' | transloco) : ('questions.crud_title_new' | transloco) }}
+      </p>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
         <div class="form-group">
-          <label>Categoría</label>
+          <label>{{ 'questions.label_category' | transloco }}</label>
           <select formControlName="category_id">
             @for (c of categories(); track c.id) {
               <option [value]="c.id">{{ c.name }}</option>
@@ -236,15 +236,15 @@
           </select>
         </div>
         <div class="form-group">
-          <label>Dificultad</label>
+          <label>{{ 'questions.label_difficulty' | transloco }}</label>
           <select formControlName="difficulty">
-            <option value="easy">Fácil</option>
-            <option value="medium">Medio</option>
-            <option value="hard">Difícil</option>
+            <option value="easy">{{ 'questions.easy' | transloco }}</option>
+            <option value="medium">{{ 'questions.medium' | transloco }}</option>
+            <option value="hard">{{ 'questions.hard' | transloco }}</option>
           </select>
         </div>
         <div class="form-group">
-          <label>Respuesta correcta</label>
+          <label>{{ 'questions.label_correct_answer' | transloco }}</label>
           <select formControlName="correct_answer">
             <option value="a">A</option>
             <option value="b">B</option>
@@ -253,30 +253,27 @@
           </select>
         </div>
       </div>
-
       <div class="form-group">
-        <label>Enunciado de la pregunta</label>
+        <label>{{ 'questions.label_question_text' | transloco }}</label>
         <input type="text" formControlName="question_text">
       </div>
-
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
         <div class="form-group"><label>Opción A</label><input type="text" formControlName="option_a"></div>
         <div class="form-group"><label>Opción B</label><input type="text" formControlName="option_b"></div>
         <div class="form-group"><label>Opción C</label><input type="text" formControlName="option_c"></div>
         <div class="form-group"><label>Opción D</label><input type="text" formControlName="option_d"></div>
       </div>
-
       <div class="form-group">
-        <label>Retroalimentación educativa</label>
+        <label>{{ 'questions.label_feedback' | transloco }}</label>
         <input type="text" formControlName="feedback_text">
       </div>
-
       <div style="display:flex;gap:10px">
         <button type="submit" class="btn-sm primary">
-          {{ editingId() ? 'Actualizar' : 'Crear' }}
+          {{ editingId() ? ('questions.btn_update' | transloco) : ('questions.btn_create' | transloco) }}
         </button>
-        <button type="button" class="btn-sm outline"
-                (click)="showForm.set(false)">Cancelar</button>
+        <button type="button" class="btn-sm outline" (click)="showForm.set(false)">
+          {{ 'questions.btn_cancel' | transloco }}
+        </button>
       </div>
     </form>
   }
@@ -285,41 +282,45 @@
   <table class="questions-table">
     <thead>
       <tr>
-        <th>#</th>
-        <th>Pregunta</th>
-        <th>Categoría</th>
-        <th>Dificultad</th>
-        <th>Resp.</th>
-        <th>Estado</th>
-        <th>Acciones</th>
+        <th>{{ 'questions.col_num' | transloco }}</th>
+        <th>{{ 'questions.col_question' | transloco }}</th>
+        <th>{{ 'questions.col_category' | transloco }}</th>
+        <th>{{ 'questions.col_difficulty' | transloco }}</th>
+        <th>{{ 'questions.col_answer' | transloco }}</th>
+        <th>{{ 'questions.col_status' | transloco }}</th>
+        <th>{{ 'questions.col_actions' | transloco }}</th>
       </tr>
     </thead>
     <tbody>
       @for (q of filteredQuestions(); track q.id) {
         <tr>
-          <td style="font-family:monospace;font-size:11px;color:var(--muted)">
-            {{ q.id }}
-          </td>
+          <td style="font-family:monospace;font-size:11px;color:var(--muted)">{{ q.id }}</td>
           <td class="td-text">{{ q.question_text }}</td>
           <td>{{ q.category_name }}</td>
           <td>
             <span class="diff-dot" [class]="q.difficulty"></span>
-            {{ difficultyLabel(q.difficulty) }}
+            {{ q.difficulty === 'easy' ? ('questions.easy' | transloco) :
+               q.difficulty === 'medium' ? ('questions.medium' | transloco) :
+               ('questions.hard' | transloco) }}
           </td>
-          <td style="font-weight:700;text-transform:uppercase">
-            {{ q.correct_answer }}
-          </td>
+          <td style="font-weight:700;text-transform:uppercase">{{ q.correct_answer }}</td>
           <td>
             <button class="toggle-btn"
                     [class.active]="q.is_active"
                     (click)="toggle(q.id)"
                     [title]="q.is_active ? 'Click para desverificar' : 'Click para verificar'">
-              {{ q.is_active ? '✓ Verificada' : '○ Pendiente' }}
+              {{ q.is_active ? ('questions.verified' | transloco) : ('questions.pending' | transloco) }}
             </button>
           </td>
-          <td style="display:flex;gap:6px">
-            <button class="btn-sm outline" (click)="openEdit(q)">Editar</button>
-            <button class="btn-sm danger"  (click)="delete(q.id)">Eliminar</button>
+          <td>
+            <div style="display:flex;gap:6px;align-items:center">
+              <button class="btn-sm outline" (click)="openEdit(q)">
+                {{ 'questions.btn_edit' | transloco }}
+              </button>
+              <button class="btn-sm danger" (click)="delete(q.id)">
+                {{ 'questions.btn_delete' | transloco }}
+              </button>
+            </div>
           </td>
         </tr>
       }

@@ -13,6 +13,7 @@ class GameController {
     private SessionModel    $sessionModel;
     private AnswerModel     $answerModel;
     private GameConfigModel $configModel;
+    
 
     public function __construct() {
         $this->questionModel = new QuestionModel();
@@ -25,32 +26,61 @@ class GameController {
      * POST /api/game/start
      */
     public function start(Request $request, array $payload): void {
-        $userId      = $payload['sub'];
-        $sessionType = $request->input('session_type', 'game');
+    $userId      = $payload['sub'];
+    //$sessionType = $request->input('session_type', 'game');
+    $language    = $request->input('language', 'es'); // ← nuevo
 
-        $validTypes = ['pretest', 'game', 'posttest'];
-        if (!in_array($sessionType, $validTypes, true)) {
-            Response::error('Tipo de sesión inválido');
-        }
+    //$validTypes = ['pretest', 'game', 'posttest'];
+    //if (!in_array($sessionType, $validTypes, true)) {
+    //    Response::error('Tipo de sesión inválido');
+    //}
+    $sessionType = 'game';
+    $config    = $this->configModel->get();
+    $sessionId = $this->sessionModel->create($userId, $sessionType);
 
-        $config    = $this->configModel->get();
-        $sessionId = $this->sessionModel->create($userId, $sessionType);
-        $question  = $this->getNextQuestion($sessionId, 'easy', []);
+    $userModel  = new \UserModel();
+    $user       = $userModel->findById($userId);
+    $roomConfig = null;
 
-        if (!$question) {
-            Response::error('No hay preguntas disponibles', 500);
-        }
-
-        Response::success([
-            'session_id' => $sessionId,
-            'question'   => $this->formatQuestion($question),
-            'config'     => [
-                'lives'        => (int) $config['lives'],
-                'questions'    => (int) $config['questions'],
-                'time_seconds' => (int) $config['time_seconds'],
-            ],
-        ], 'Sesión iniciada');
+    if (!empty($user['room_id'])) {
+        $db   = \Database::connect();
+        $stmt = $db->prepare('SELECT * FROM rooms WHERE id = ?');
+        $stmt->execute([$user['room_id']]);
+        $roomConfig = $stmt->fetch() ?: null;
     }
+
+    $initialDifficulty = 'easy';
+    if ($roomConfig && $roomConfig['difficulty'] !== 'adaptive') {
+        $initialDifficulty = $roomConfig['difficulty'];
+    }
+
+    $allowedCategories = null;
+    if ($roomConfig && !empty($roomConfig['category_ids'])) {
+        $allowedCategories = array_map('intval', explode(',', $roomConfig['category_ids']));
+    }
+
+    // Pasar language a getNextQuestion
+    $question = $this->getNextQuestion($sessionId, $initialDifficulty, [], $allowedCategories, $language);
+
+    if (!$question) {
+        Response::error('No hay preguntas disponibles en este idioma', 500);
+    }
+
+    $maxQuestions = $roomConfig
+        ? (int) $roomConfig['questions_count']
+        : (int) $config['questions'];
+
+    Response::success([
+        'session_id' => $sessionId,
+        'question'   => $this->formatQuestion($question),
+        'config'     => [
+            'lives'        => (int) $config['lives'],
+            'questions'    => $maxQuestions,
+            'time_seconds' => (int) $config['time_seconds'],
+            'difficulty'   => $roomConfig['difficulty'] ?? 'adaptive',
+        ],
+    ], 'Sesión iniciada');
+}
 
     /**
      * POST /api/game/answer
@@ -60,7 +90,7 @@ class GameController {
         $questionId     = (int) $request->input('question_id');
         $selectedAnswer = strtolower(trim($request->input('selected_answer', '')));
         $responseTime   = (int) $request->input('response_time_ms', 0);
-
+        
         if (!$sessionId || !$questionId) {
             Response::error('Faltan parámetros requeridos');
         }
@@ -96,7 +126,7 @@ class GameController {
                 $points += (int) $config['points_bonus'];
             }
         }
-
+        
         // Registrar respuesta
         $this->answerModel->record([
             'session_id'        => $sessionId,
@@ -106,6 +136,25 @@ class GameController {
             'response_time_ms'  => $responseTime,
             'difficulty_at_time'=> $session['current_difficulty'],
         ]);
+        $allAnswers     = $this->sessionModel->getAnswers($sessionId);
+        // Calcular racha actual
+        $streak = 0;
+        foreach (array_reverse($allAnswers) as $ans) {
+            if ($ans['is_correct']) {
+                $streak++;
+            } else {
+                break;
+            }
+        }
+
+        // Bonus por racha (se suma a los puntos ya calculados)
+        if ($isCorrect) {
+            if ($streak >= 5) {
+                $points = (int) round($points * 2);    // x2 desde racha 5
+            } elseif ($streak >= 3) {
+                $points = (int) round($points * 1.5);  // x1.5 desde racha 3
+            }
+        }
 
         // Motor adaptativo
         $recentAnswers = $this->answerModel->getRecent($sessionId, 5);
@@ -131,7 +180,9 @@ class GameController {
         $nextQuestion = null;
 
         if (!$gameOver) {
-            $nextQuestion = $this->getNextQuestion($sessionId, $newDifficulty, $answeredIds);
+            // Obtener idioma de la sesión actual
+            $language = $request->input('language', 'es');
+            $nextQuestion = $this->getNextQuestion($sessionId, $newDifficulty, $answeredIds, null, $language);
             if (!$nextQuestion) $gameOver = true;
         }
 
@@ -140,7 +191,63 @@ class GameController {
             $total        = count($allAnswers);
 
             $this->sessionModel->close($sessionId, $correctCount, $total);
+            if ($gameOver) {
+                $correctCount = count(array_filter($allAnswers, fn($a) => $a['is_correct']));
+                $total        = count($allAnswers);
 
+                $this->sessionModel->close($sessionId, $correctCount, $total);
+
+                $userModel = new \UserModel();
+                $userModel->updateStats($payload['sub'], $correctCount);
+
+                // Guardar en test_results si es pretest o posttest
+                /*if (in_array($session['session_type'], ['pretest', 'posttest'], true)) {
+                    $db = \Database::connect();
+
+                    $knowledgeGain = null;
+                    if ($session['session_type'] === 'posttest') {
+                        $stmt = $db->prepare(
+                            "SELECT score, total_questions FROM game_sessions
+                            WHERE user_id = ? AND session_type = 'pretest'
+                            AND ended_at IS NOT NULL
+                            ORDER BY ended_at DESC LIMIT 1"
+                        );
+                        $stmt->execute([$payload['sub']]);
+                        $pretest = $stmt->fetch();
+
+                        if ($pretest && $pretest['total_questions'] > 0) {
+                            $pretestPct    = ($pretest['score'] / $pretest['total_questions']) * 100;
+                            $posttestPct   = $total > 0 ? ($correctCount / $total) * 100 : 0;
+                            $knowledgeGain = round($posttestPct - $pretestPct, 2);
+                        }
+                    }
+
+                    $stmt = $db->prepare(
+                        "INSERT INTO test_results (user_id, test_type, score, knowledge_gain, applied_at)
+                        VALUES (?, ?, ?, ?, NOW())"
+                    );
+                    $stmt->execute([
+                        $payload['sub'],
+                        $session['session_type'],
+                        $correctCount,
+                        $knowledgeGain
+                    ]);
+                }*/
+
+                Response::success([
+                    'feedback'        => $question['feedback_text'],
+                    'correct'         => $isCorrect,
+                    'correct_answer'  => $question['correct_answer'],
+                    'game_over'       => true,
+                    'points_earned'   => $points,
+                    'score'           => $correctCount,
+                    'total'           => $total,
+                    'percentage'      => $total > 0 ? round(($correctCount / $total) * 100, 1) : 0,
+                    'reason'          => $livesRemaining <= 0 ? 'no_lives' : 'completed',
+                    'lives_remaining' => $livesRemaining,
+                    'streak'          => $streak, 
+                ], 'Sesión finalizada');
+            }
             $userModel = new \UserModel();
             $userModel->updateStats($payload['sub'], $correctCount);
 
@@ -167,6 +274,7 @@ class GameController {
             'new_difficulty'  => $newDifficulty,
             'next_question'   => $this->formatQuestion($nextQuestion),
             'lives_remaining' => $livesRemaining,
+            'streak'          => $streak,
         ]);
     }
 
@@ -205,13 +313,23 @@ class GameController {
 
     // ── Helpers ──────────────────────────────────────────
 
-    private function getNextQuestion(int $sessionId, string $difficulty, array $exclude): ?array {
-        $questions = $this->questionModel->getByDifficulty($difficulty, 1, $exclude);
+    private function getNextQuestion(
+        int $sessionId,
+        string $difficulty,
+        array $exclude,
+        ?array $allowedCategories = null,
+        string $language = 'es'
+    ): ?array {
+        $questions = $this->questionModel->getByDifficulty(
+            $difficulty, 1, $exclude, $allowedCategories, $language
+        );
 
         if (empty($questions)) {
             $fallbacks = array_diff(['easy', 'medium', 'hard'], [$difficulty]);
             foreach ($fallbacks as $fallback) {
-                $questions = $this->questionModel->getByDifficulty($fallback, 1, $exclude);
+                $questions = $this->questionModel->getByDifficulty(
+                    $fallback, 1, $exclude, $allowedCategories, $language
+                );
                 if (!empty($questions)) break;
             }
         }

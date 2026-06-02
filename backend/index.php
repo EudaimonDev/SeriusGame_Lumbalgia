@@ -46,6 +46,16 @@ $router->get   ('/api/admin/rooms',                'RoomController@index',   ['a
 $router->post  ('/api/admin/rooms',                'RoomController@store',   ['auth', 'admin']);
 $router->patch ('/api/admin/rooms/{id}/toggle',    'RoomController@toggle',  ['auth', 'admin']);
 $router->delete('/api/admin/rooms/{id}',           'RoomController@destroy', ['auth', 'admin']);
+$router->patch('/api/admin/rooms/{id}/phase', 'RoomController@updatePhase', ['auth', 'admin']);
+$router->put('/api/admin/rooms/{id}', 'RoomController@update', ['auth', 'admin']);
+
+// --- Admin: reportes ---
+$router->get('/api/admin/reports/rooms',    'AdminController@reportRooms',    ['auth', 'admin']);
+$router->get('/api/admin/reports/students', 'AdminController@reportStudents', ['auth', 'admin']);
+$router->get('/api/admin/reports/evolution', 'AdminController@reportEvolution', ['auth', 'admin']);
+$router->get('/api/admin/reports/stats',     'AdminController@reportStats',     ['auth', 'admin']);
+$router->get('/api/admin/reports/testcomparison', 'AdminController@reportTestComparison', ['auth', 'admin']);
+$router->get('/api/admin/reports/questions', 'AdminController@reportQuestions', ['auth', 'admin']);
 // --- Mantener compatibilidad ---
 $router->post('/api/auth/register',    'AuthController@studentRegister');
 $router->post('/api/auth/login',       'AuthController@adminLogin');

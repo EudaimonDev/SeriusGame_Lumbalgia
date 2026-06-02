@@ -31,17 +31,50 @@ class RoomModel {
         )->fetchAll();
     }
 
-    public function create(string $code, string $name, string $groupType): int {
+    public function create(
+        string $code,
+        string $name,
+        string $groupType,
+        string $phase          = 'game',
+        int    $questionsCount = 10,
+        string $difficulty     = 'adaptive',
+        ?string $categoryIds   = null
+    ): int {
         $stmt = $this->db->prepare(
-            'INSERT INTO rooms (code, name, group_type)
-             VALUES (:code, :name, :group_type)'
+            'INSERT INTO rooms (code, name, group_type, phase, questions_count, difficulty, category_ids)
+             VALUES (:code, :name, :group_type, :phase, :questions_count, :difficulty, :category_ids)'
         );
         $stmt->execute([
-            ':code'       => strtoupper(trim($code)),
-            ':name'       => $name,
-            ':group_type' => $groupType,
+            ':code'            => strtoupper(trim($code)),
+            ':name'            => $name,
+            ':group_type'      => $groupType,
+            ':phase'           => $phase,
+            ':questions_count' => $questionsCount,
+            ':difficulty'      => $difficulty,
+            ':category_ids'    => $categoryIds,
         ]);
         return (int) $this->db->lastInsertId();
+    }
+
+    public function update(int $id, array $data): void {
+        $this->db->prepare(
+            'UPDATE rooms SET
+                name             = :name,
+                group_type       = :group_type,
+                phase            = :phase,
+                questions_count  = :questions_count,
+                difficulty       = :difficulty,
+                category_ids     = :category_ids
+             WHERE id = :id'
+        )->execute([
+            ':name'            => $data['name'],
+            ':group_type'      => $data['group_type'],
+            ':phase'           => $data['phase']           ?? 'game',
+            ':questions_count' => $data['questions_count'] ?? 10,
+            ':difficulty'      => $data['difficulty']      ?? 'adaptive',
+            ':category_ids'    => $data['category_ids']    ?? null,
+            ':id'              => $id,
+        ]);
     }
 
     public function toggle(int $id): void {
