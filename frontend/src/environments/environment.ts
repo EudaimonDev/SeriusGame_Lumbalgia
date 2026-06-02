@@ -1,6 +1,7 @@
 // src/environments/environment.ts
 export const environment = {
-  baseUrl: 'http://localhost:4200',
-  production: false,
-  apiUrl: 'http://localhost/backend/api',
+  //baseUrl: 'http://localhost:4200',
+  production: true  , //false para desarrollo, true para producción
+  //apiUrl: 'http://localhost/backend/api',
+  apiUrl: 'https://asalguero.ifree.page/api',
 };
