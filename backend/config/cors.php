@@ -3,7 +3,7 @@
 function handleCors(): void {
     $allowed = [
         'http://localhost:4200',
-        'https://EudaimonDev.github.io',   // <- cambia esto cuando tengas el repo
+        'https://eudaimondev.github.io',   // <- cambia esto cuando tengas el repo
     ];
 
     $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
