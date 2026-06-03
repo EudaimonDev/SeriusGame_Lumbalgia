@@ -7,6 +7,6 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 WORKDIR /app
 COPY . /app/
 
-RUN composer install --no-dev --optimize-autoloader
+RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs
 
 CMD ["sh", "-c", "php -S 0.0.0.0:${PORT:-8080} -t /app"]
