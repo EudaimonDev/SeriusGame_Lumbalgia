@@ -1,13 +1,24 @@
 <?php
-// Carga .env compatible con Windows (CRLF)
-$envLines = file(__DIR__ . '/.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-foreach ($envLines as $line) {
-    $line = trim($line);
-    if (empty($line) || str_starts_with($line, '#')) continue;
-    if (!str_contains($line, '=')) continue;
-    [$key, $val] = explode('=', $line, 2);
-    $_ENV[trim($key)] = trim($val);
+// Carga .env si existe (local), si no usa variables de entorno del sistema (Railway)
+$envFile = __DIR__ . '/.env';
+if (file_exists($envFile)) {
+    $envLines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($envLines as $line) {
+        $line = trim($line);
+        if (empty($line) || str_starts_with($line, '#')) continue;
+        if (!str_contains($line, '=')) continue;
+        [$key, $val] = explode('=', $line, 2);
+        $_ENV[trim($key)] = trim($val);
+    }
+} else {
+    // Railway: cargar desde variables de entorno del sistema
+    foreach (['DB_HOST', 'DB_NAME', 'DB_USER', 'DB_PASS', 'DB_PORT', 'JWT_SECRET', 'GEMINI_API_KEY'] as $key) {
+        if (getenv($key) !== false) {
+            $_ENV[$key] = getenv($key);
+        }
+    }
 }
+
 
 require_once __DIR__ . '/config/cors.php';
 require_once __DIR__ . '/core/Request.php';
