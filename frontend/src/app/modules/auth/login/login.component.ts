@@ -6,6 +6,8 @@ import { AuthService } from '../../../core/services/auth.service';
 import { GameConfigService } from '../../../core/services/game-config.service';
 import { LanguageService } from '../../../core/services/language.service';
 import { RankingItem } from '../../../models/game-config.model';
+import { environment } from '../../../../environments/environment';
+
 
 @Component({
   selector: 'app-login',
@@ -19,7 +21,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   private router    = inject(Router);
   private configSvc = inject(GameConfigService);
   langSvc           = inject(LanguageService);
-
+  bgImage = `url('${environment.production ? '/SeriusGame_Lumbalgia/' : '/'}login-bg.png')`;
   showRanking   = signal(false);
   showRoomForm  = signal(false);
   showHowToPlay = signal(false);

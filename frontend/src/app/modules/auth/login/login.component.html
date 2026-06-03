@@ -1,6 +1,6 @@
 <div class="rpg-root">
 
-  <div class="rpg-bg"></div>
+  <div class="rpg-bg" [style.backgroundImage]="bgImage"></div>
   <div class="rpg-overlay"></div>
   <button class="rpg-mute-btn" (click)="toggleMute()"
           [title]="muted ? 'Activar sonido' : 'Silenciar'">
