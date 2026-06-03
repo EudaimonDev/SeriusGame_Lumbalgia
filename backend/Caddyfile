@@ -1,4 +1,6 @@
 :{$PORT} {
     root * /app
-    php_server
+    php_server {
+        env PHP_INI_SCAN_DIR /app
+    }
 }
