@@ -4068,3 +4068,174 @@ body.rpg-theme {
   }
 }
 
+// GAME  RESPONSIVE
+/* ══ GAME PLAY — responsive ══ */
+
+  .rpg-play {
+    min-height: 100vh;
+    overflow-y: auto;
+  }
+
+  /* Topbar compacto */
+  .rpg-topbar {
+    padding: 6px 10px;
+    gap: 6px;
+    flex-wrap: nowrap;
+  }
+
+  /* Avatar + nombre del jugador */
+  .rpg-player {
+    gap: 6px;
+    min-width: 0;
+
+    .rpg-avatar {
+      width: 28px;
+      height: 28px;
+      font-size: 11px;
+      flex-shrink: 0;
+    }
+  }
+
+  .rpg-player-name {
+    font-size: 9px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 60px;
+  }
+
+  /* Dificultad — ocultar label y barra, solo mostrar valor */
+  .rpg-difficulty {
+    flex: 1;
+    max-width: 90px;
+    gap: 2px;
+
+    &__label { display: none; }
+
+    &__bar {
+      height: 8px;
+    }
+
+    &__val {
+      font-size: 10px;
+    }
+  }
+
+  /* Stats: colapsar un poco */
+  .rpg-stats {
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .rpg-stat {
+    font-size: 13px;
+    gap: 3px;
+
+    &__icon { font-size: 12px; }
+  }
+
+  /* Racha — más compacta */
+  .rpg-streak {
+    font-size: 10px;
+    padding: 3px 6px;
+
+    &__count { font-size: 11px; }
+    &__mult  { font-size: 9px; }
+  }
+
+  /* Botón pausa */
+  .rpg-pause-btn {
+    width: 26px;
+    height: 26px;
+    flex-shrink: 0;
+  }
+
+  /* Progress bar — una sola línea */
+  .rpg-progress-bar {
+    padding: 5px 10px 4px;
+
+    &__inner { margin-bottom: 3px; }
+
+    &__label {
+      font-size: 8px;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+
+    &__count {
+      font-size: 11px;
+      white-space: nowrap;
+    }
+  }
+
+  .rpg-progress-remaining { font-size: 7px; }
+
+  /* Body del juego */
+  .rpg-body {
+    padding: 10px 10px;
+    gap: 8px;
+  }
+
+  /* Tarjeta de pregunta */
+  .rpg-question-card {
+    padding: 14px 14px 12px;
+
+    &::before { font-size: 16px; top: -9px; }
+  }
+
+  .rpg-question-header { margin-bottom: 8px; }
+
+  .rpg-question-num { font-size: 9px; }
+
+  .rpg-timer { font-size: 11px; padding: 3px 9px; }
+
+  .rpg-question-text {
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  /* Opciones: columna única en móvil */
+  .rpg-options-grid {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .rpg-option {
+    padding: 10px 12px;
+    gap: 10px;
+
+    &__letter {
+      width: 26px;
+      height: 26px;
+      font-size: 11px;
+      flex-shrink: 0;
+    }
+
+    &__text { font-size: 13px; }
+  }
+
+  /* Botón enviar */
+  .rpg-submit-btn {
+    padding: 11px;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    max-width: 100%;
+  }
+
+  /* Adventure bar — héroe más pequeño */
+  .rpg-adventure-bar {
+    padding: 6px 12px 8px;
+  }
+
+  .rpg-adventure-track {
+    height: 50px;
+  }
+
+  .rpg-adventure-hero {
+    height: 70px;   /* ← era 200px */
+  }
+
+  .rpg-adventure-goal {
+    font-size: 40px;
+    bottom: 18px;
+  }
