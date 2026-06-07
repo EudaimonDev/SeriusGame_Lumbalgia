@@ -12,10 +12,10 @@
 
     @if (auth.isAdmin()) {
       <a routerLink="/dashboard"       routerLinkActive="active">{{ 'nav.home'      | transloco }}</a>
-      <a routerLink="/admin/questions" routerLinkActive="active">{{ 'nav.questions' | transloco }}</a>
-      <a routerLink="/admin/rooms"     routerLinkActive="active">{{ 'nav.rooms'     | transloco }}</a>
-      <a routerLink="/admin/config"    routerLinkActive="active">{{ 'nav.config'    | transloco }}</a>
-      <a routerLink="/admin/reports"   routerLinkActive="active">{{ 'nav.reports'   | transloco }}</a>
+      <a routerLink="/admin/questions" routerLinkActive="active" class="nav-link--hide-mobile">{{ 'nav.questions' | transloco }}</a>
+      <a routerLink="/admin/rooms"     routerLinkActive="active" class="nav-link--hide-mobile">{{ 'nav.rooms'     | transloco }}</a>
+      <a routerLink="/admin/config"    routerLinkActive="active" class="nav-link--hide-mobile">{{ 'nav.config'    | transloco }}</a>
+      <a routerLink="/admin/reports"   routerLinkActive="active" class="nav-link--hide-mobile">{{ 'nav.reports'   | transloco }}</a>
     }
 
     <!-- Avatar con dropdown -->
@@ -52,6 +52,20 @@
             </button>
             <button class="nav-dropdown__item" routerLink="/ranking" (click)="showDropdown.set(false)">
               🏆 {{ 'nav.ranking' | transloco }}
+            </button>
+          }
+          @if (auth.isAdmin()) {
+            <button class="nav-dropdown__item" routerLink="/admin/questions" (click)="showDropdown.set(false)">
+              ❓ {{ 'nav.questions' | transloco }}
+            </button>
+            <button class="nav-dropdown__item" routerLink="/admin/rooms" (click)="showDropdown.set(false)">
+              🏠 {{ 'nav.rooms' | transloco }}
+            </button>
+            <button class="nav-dropdown__item" routerLink="/admin/config" (click)="showDropdown.set(false)">
+              ⚙️ {{ 'nav.config' | transloco }}
+            </button>
+            <button class="nav-dropdown__item" routerLink="/admin/reports" (click)="showDropdown.set(false)">
+              📊 {{ 'nav.reports' | transloco }}
             </button>
           }
           <div class="nav-dropdown__divider"></div>

@@ -4582,6 +4582,272 @@ body.rpg-theme {
     font-size: 12px;
     border-radius: 12px;
   }
+
+   /* ══ ADMIN LOGIN — responsive ══ */
+
+  /* El wrapper es flex row en desktop — en móvil lo volvemos columna */
+  .admin-login-wrapper {
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    gap: 0;
+  }
+
+  /* Ocultar la imagen de la columna */
+  .admin-columna {
+    display: none;
+  }
+
+  /* Card ocupa todo el ancho */
+  .admin-login-card {
+    max-width: 100%;
+    width: 100%;
+    border-radius: 16px;
+  }
+
+  /* Header del card más compacto */
+  .admin-login-header {
+    padding: 24px 20px 18px;
+
+    &__icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      margin-bottom: 12px;
+    }
+
+    &__title {
+      font-size: 18px;
+    }
+
+    &__sub {
+      font-size: 12px;
+    }
+  }
+
+  /* Body con menos padding */
+  .admin-login-body {
+    padding: 20px;
+  }
+
+  /* Root centrado y con padding lateral */
+  .admin-login-root {
+    padding: 16px;
+    align-items: center;
+    justify-content: center;
+  }
+
+    /* ══ DASHBOARD ADMIN — responsive ══ */
+
+  .dashboard-body {
+    padding: 16px 0;
+  }
+
+  .dash-welcome {
+    margin-bottom: 16px;
+
+    h2 { font-size: 20px; }
+    p  { font-size: 12px; }
+  }
+
+  /* Stats: 2x2 en lugar de 4 en fila */
+  .dash-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .stat-pill {
+    padding: 12px 8px;
+
+    .val { font-size: 22px; }
+    .lbl { font-size: 10px; margin-top: 2px; }
+  }
+
+  /* Cards: columna única */
+  .cards-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .dash-card {
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .card-icon  { font-size: 22px; margin-bottom: 0; flex-shrink: 0; }
+    .card-title { font-size: 13px; margin-bottom: 2px; }
+    .card-sub   { font-size: 11px; }
+  }
+
+  /* Tablas inferiores: columna única */
+  div[style*="grid-template-columns:1fr 1fr"] {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+
+  .crud-panel {
+    padding: 14px;
+    margin-bottom: 0;
+  }
+
+  .panel-title { font-size: 14px; }
+
+  /* Tablas más compactas */
+  .questions-table {
+    th { padding: 8px 10px; font-size: 9px; }
+    td { padding: 8px 10px; font-size: 12px; }
+  }
+
+  /* Navbar admin — ocultar links que sobran */
+  .app-nav {
+    a { display: none; }
+
+    /* Mostrar solo el primero (Inicio) */
+    a:first-of-type { display: block; }
+  }
+
+    /* ══ ADMIN QUESTIONS — responsive ══ */
+
+  .admin-body {
+    padding: 16px 0;
+  }
+
+  /* Toolbar: wrap limpio */
+  .admin-toolbar {
+    gap: 6px;
+    margin-bottom: 14px;
+
+    h2 {
+      font-size: 18px;
+      width: 100%;
+      margin-right: 0;
+      margin-bottom: 4px;
+    }
+  }
+
+  /* Selects más compactos */
+  .admin-select {
+    font-size: 11px;
+    padding: 6px 22px 6px 9px;
+  }
+
+  .admin-filter-group {
+    gap: 0;
+  }
+
+  .admin-sort-btn {
+    padding: 6px 9px;
+    font-size: 12px;
+  }
+
+  .admin-filter-count {
+    font-size: 11px;
+    padding: 3px 10px;
+  }
+
+  /* Botones de acción más pequeños */
+  .btn-sm {
+    font-size: 11px;
+    padding: 6px 11px;
+  }
+
+  /* Tabla de preguntas — ocultar columnas secundarias */
+  .questions-table {
+    /* Ocultar columna Respuesta y Estado en móvil */
+    th:nth-child(5),
+    td:nth-child(5),
+    th:nth-child(6),
+    td:nth-child(6) {
+      display: none;
+    }
+
+    /* Columna de pregunta ocupa más espacio */
+    .td-text {
+      max-width: 160px;
+      font-size: 12px;
+    }
+
+    /* Botones de acción apilados */
+    td:last-child div {
+      flex-direction: column;
+      gap: 4px;
+
+      .btn-sm {
+        font-size: 10px;
+        padding: 5px 8px;
+        text-align: center;
+        justify-content: center;
+      }
+    }
+  }
+
+  /* Paneles (import/generate/crud) */
+  .import-panel,
+  .generate-panel,
+  .crud-panel {
+    padding: 14px;
+    border-radius: 10px;
+  }
+
+  /* Grids internos de paneles → columna única */
+  .generate-panel div[style*="grid-template-columns:1fr 1fr"],
+  .crud-panel div[style*="grid-template-columns:1fr 1fr 1fr"],
+  .crud-panel div[style*="grid-template-columns:1fr 1fr"] {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0 !important;
+  }
+
+   /* ══ ADMIN ROOMS — responsive ══ */
+
+  /* Tabla de salas: ocultar columna Estudiantes y Estado, dejar lo esencial */
+  .questions-table {
+    /* Ocultar Estudiantes y Estado */
+    th:nth-child(4),
+    td:nth-child(4),
+    th:nth-child(5),
+    td:nth-child(5) {
+      display: none;
+    }
+
+    /* Código más compacto */
+    td:first-child {
+      div {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+      }
+
+      code {
+        font-size: 11px !important;
+        padding: 2px 6px !important;
+        word-break: break-all;
+      }
+
+      .btn-sm {
+        font-size: 9px !important;
+        padding: 2px 6px !important;
+      }
+    }
+
+    /* Botones de acciones apilados */
+    td:last-child div {
+      flex-direction: column;
+      gap: 4px;
+    }
+  }
+
+  /* Formulario de sala: grids → columna única */
+  .crud-panel {
+    div[style*="grid-template-columns:1fr 1fr"] {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 0 !important;
+    }
+  }
 }
 
 
