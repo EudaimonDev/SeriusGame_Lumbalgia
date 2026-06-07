@@ -4279,6 +4279,183 @@ body.rpg-theme {
     &__role  { font-size: 10px; }
     &__item  { font-size: 12px; padding: 10px 14px; }
   }
+
+    /* ══ DEFEAT ÉPICO — responsive ══ */
+
+  .defeat-epic {
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
+    padding: 12px 16px 24px;
+    justify-content: flex-start;
+    gap: 0;
+  }
+
+  /* Imagen más pequeña */
+  .defeat-epic__hero {
+    margin-bottom: -30px;
+  }
+
+  .defeat-epic__character-img {
+    width: 100px;
+    height: auto;
+  }
+
+  /* Panel de score compacto */
+  .defeat-epic__score-panel {
+    padding: 40px 16px 16px;
+    max-width: 100%;
+  }
+
+  .defeat-epic__title {
+    font-size: 20px;
+    margin-bottom: 4px;
+  }
+
+  .defeat-epic__pct {
+    font-size: 36px;
+  }
+
+  .defeat-epic__pct-label {
+    font-size: 9px;
+    letter-spacing: 0.1em;
+  }
+
+  .defeat-epic__stars {
+    font-size: 14px;
+    margin-top: 4px;
+  }
+
+  .defeat-epic__laurel-left,
+  .defeat-epic__laurel-right {
+    font-size: 20px;
+  }
+
+  /* Stats row */
+  .defeat-epic__stats {
+    margin-top: 8px;
+    padding-top: 6px;
+  }
+
+  .defeat-epic__stat-icon { font-size: 14px; }
+
+  .defeat-epic__stat-val {
+    font-size: 18px;
+  }
+
+  .defeat-epic__stat-lbl {
+    font-size: 9px;
+  }
+
+  .defeat-epic__stat-divider {
+    height: 36px;
+  }
+
+  /* Botones */
+  .defeat-epic__actions {
+    max-width: 100%;
+    margin-top: 12px;
+    gap: 8px;
+  }
+
+  .defeat-epic__btn {
+    padding: 11px;
+    font-size: 11px;
+    border-radius: 10px;
+  }
+
+  .defeat-epic__tip {
+    font-size: 10px;
+    margin-top: 6px;
+  }
+
+
+    /* ══ PROFILE RPG — responsive ══ */
+
+  .profile-rpg {
+    padding: 16px 12px;
+    gap: 12px;
+
+    /* Header más compacto */
+    &__header {
+      padding: 16px;
+      gap: 14px;
+
+      &::before { display: none; } /* oculta el ⚜ decorativo */
+    }
+
+    &__avatar {
+      width: 52px;
+      height: 52px;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    &__name {
+      font-size: 16px;
+      letter-spacing: 0.04em;
+    }
+
+    &__sub {
+      font-size: 12px;
+    }
+
+    /* Stats: 2x2 en lugar de 4 en fila */
+    &__stats {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    &__stat {
+      padding: 12px 8px;
+
+      &-icon { font-size: 16px; margin-bottom: 4px; }
+
+      &-val {
+        font-size: 20px;
+        margin-bottom: 4px;
+      }
+
+      &-lbl {
+        font-size: 8px;
+        letter-spacing: 0.06em;
+      }
+    }
+
+    /* Cards internas */
+    &__card {
+      padding: 14px;
+
+      &-label {
+        font-size: 9px;
+        margin-bottom: 8px;
+      }
+
+      &-val {
+        font-size: 26px;
+      }
+    }
+
+    /* Categorías */
+    &__cat-name  { font-size: 13px; }
+    &__cat-count { font-size: 10px; }
+    &__cat-pct   { font-size: 11px; }
+    &__cat-time  { font-size: 10px; }
+
+    /* Errores */
+    &__error-question { font-size: 13px; }
+    &__error-wrong    { font-size: 11px; }
+    &__error-correct  { font-size: 11px; }
+
+    /* Botones */
+    &__actions { gap: 8px; }
+
+    &__btn {
+      padding: 12px;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+    }
+  }
 }
 
 
