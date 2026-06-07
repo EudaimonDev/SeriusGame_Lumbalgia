@@ -4456,6 +4456,132 @@ body.rpg-theme {
       letter-spacing: 0.06em;
     }
   }
+
+   /* ══ RESULT ÉPICO — responsive ══ */
+
+  .result-epic {
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
+    padding: 16px 16px 32px;
+    justify-content: flex-start;
+    gap: 12px;
+  }
+
+  /* Hero: fila compacta */
+  .result-epic__hero {
+    flex-direction: row;
+    align-items: center;
+    max-width: 100%;
+    gap: 0;
+  }
+
+  .result-epic__left {
+    padding: 12px 8px 12px 0;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .result-epic__trophy {
+    font-size: 36px;
+    margin-bottom: 2px;
+  }
+
+  .result-epic__title {
+    font-size: 22px;
+    margin-bottom: 4px;
+    line-height: 1.1;
+  }
+
+  .result-epic__divider {
+    font-size: 11px;
+    margin-bottom: 4px;
+  }
+
+  .result-epic__subtitle {
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  /* Imagen más pequeña y contenida */
+  .result-epic__character {
+    flex-shrink: 0;
+    width: 120px;
+  }
+
+  .result-epic__character-img {
+    width: 120px;
+    height: auto;
+    max-height: 180px;
+    object-fit: contain;
+  }
+
+  /* Score panel compacto */
+  .result-epic__score-panel {
+    max-width: 100%;
+    padding: 12px 16px 12px;
+    margin-top: 0;
+  }
+
+  .result-epic__laurels {
+    margin-bottom: 10px;
+    gap: 10px;
+  }
+
+  .result-epic__laurel-left,
+  .result-epic__laurel-right {
+    font-size: 20px;
+  }
+
+  .result-epic__pct {
+    font-size: 42px;
+  }
+
+  .result-epic__pct-label {
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    margin-top: 2px;
+  }
+
+  .result-epic__stars {
+    font-size: 16px;
+    margin-top: 6px;
+    gap: 2px;
+  }
+
+  /* Stats row */
+  .result-epic__stats {
+    margin-top: 8px;
+    padding-top: 8px;
+  }
+
+  .result-epic__stat-icon { font-size: 16px; }
+
+  .result-epic__stat-val {
+    font-size: 18px;
+  }
+
+  .result-epic__stat-lbl {
+    font-size: 9px;
+    letter-spacing: 0.06em;
+  }
+
+  .result-epic__stat-divider {
+    height: 36px;
+  }
+
+  /* Botones */
+  .result-epic__actions {
+    max-width: 100%;
+    margin-top: 0;
+    gap: 8px;
+  }
+
+  .result-epic__btn {
+    padding: 12px;
+    font-size: 12px;
+    border-radius: 12px;
+  }
 }
 
 
