@@ -5,8 +5,8 @@
     @if (auth.isStudent()) {
       @if (!router.url.startsWith('/pretest') && !router.url.startsWith('/posttest') && !inTestMode) {
         <a routerLink="/game"    routerLinkActive="active">{{ 'nav.play'    | transloco }}</a>
-        <a routerLink="/profile" routerLinkActive="active">{{ 'nav.profile' | transloco }}</a>
-        <a routerLink="/ranking" routerLinkActive="active">{{ 'nav.ranking' | transloco }}</a>
+        <a routerLink="/profile" routerLinkActive="active" class="nav-link--hide-mobile">{{ 'nav.profile' | transloco }}</a>
+        <a routerLink="/ranking" routerLinkActive="active" class="nav-link--hide-mobile">{{ 'nav.ranking' | transloco }}</a>
       }
     }
 
@@ -46,7 +46,14 @@
                 style="width:18px;height:13px;object-fit:cover;border-radius:2px">
             {{ langSvc.currentLang() === 'es' ? 'Switch to English' : 'Cambiar a Español' }}
           </button>
-
+          @if (auth.isStudent()) {
+            <button class="nav-dropdown__item" routerLink="/profile" (click)="showDropdown.set(false)">
+              👤 {{ 'nav.profile' | transloco }}
+            </button>
+            <button class="nav-dropdown__item" routerLink="/ranking" (click)="showDropdown.set(false)">
+              🏆 {{ 'nav.ranking' | transloco }}
+            </button>
+          }
           <div class="nav-dropdown__divider"></div>
 
           <!-- Logout -->
