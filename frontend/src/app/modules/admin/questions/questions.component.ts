@@ -17,6 +17,8 @@ export class QuestionsComponent implements OnInit {
   private adminSvc = inject(AdminService);
   private fb       = inject(FormBuilder);
   private langSvc = inject(LanguageService);
+  currentPage  = signal(1);
+  pageSize     = signal(15);
 
   questions      = signal<AdminQuestion[]>([]);
   categories     = signal<any[]>([]);
@@ -47,6 +49,30 @@ export class QuestionsComponent implements OnInit {
       next: r => this.questions.set(r.data)
     });
   });
+  effect(() => {
+  this.filterDifficulty();
+  this.filterCategory();
+  this.sortBy();
+  this.currentPage.set(1);
+});
+}
+
+pagedQuestions = computed(() => {
+  const all   = this.filteredQuestions();
+  const start = (this.currentPage() - 1) * this.pageSize();
+  return all.slice(start, start + this.pageSize());
+});
+
+totalPages = computed(() =>
+  Math.ceil(this.filteredQuestions().length / this.pageSize())
+);
+
+pages = computed(() =>
+  Array.from({ length: this.totalPages() }, (_, i) => i + 1)
+);
+
+min(a: number, b: number): number {
+  return Math.min(a, b);
 }
   //METODOS PARA CATEGORIAS
   openCategories(): void {

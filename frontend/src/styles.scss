@@ -4972,6 +4972,14 @@ body.rpg-theme {
       .lbl { font-size: 9px; }
     }
   }
+
+  .nav-mobile-only {
+    display: none !important;
+
+    @media (max-width: 767px) {
+      display: flex !important;
+    }
+  }
 }
 
 
