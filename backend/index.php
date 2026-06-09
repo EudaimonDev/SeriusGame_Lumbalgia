@@ -52,6 +52,11 @@ $router->get('/api/admin/stats', 'AdminController@stats', ['auth', 'admin']);
 $router->post  ('/api/admin/categories',        'AdminController@storeCategory',   ['auth', 'admin']);
 $router->put   ('/api/admin/categories/{id}',   'AdminController@updateCategory',  ['auth', 'admin']);
 $router->delete('/api/admin/categories/{id}',   'AdminController@destroyCategory', ['auth', 'admin']);
+// --- Admin: gestión de administradores ---
+$router->get   ('/api/admin/admins',       'AdminController@getAdmins',   ['auth', 'admin']);
+$router->post  ('/api/admin/admins',       'AdminController@storeAdmin',  ['auth', 'admin']);
+$router->put   ('/api/admin/admins/{id}',  'AdminController@updateAdmin', ['auth', 'admin']);
+$router->delete('/api/admin/admins/{id}', 'AdminController@destroyAdmin', ['auth', 'admin']);
 // --- Admin: gestión de salas ---
 $router->get   ('/api/admin/rooms',                'RoomController@index',   ['auth', 'admin']);
 $router->post  ('/api/admin/rooms',                'RoomController@store',   ['auth', 'admin']);

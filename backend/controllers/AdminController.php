@@ -688,4 +688,89 @@ public function reportQuestions(Request $request, array $payload): void {
 
     Response::success($rows);
 }
+
+/**
+ * GET /api/admin/admins
+ */
+public function getAdmins(Request $request, array $payload): void {
+    $db   = Database::connect();
+    $stmt = $db->query("SELECT id, name, email, role, created_at FROM users WHERE role = 'admin' ORDER BY created_at DESC");
+    Response::success($stmt->fetchAll());
+}
+
+/**
+ * POST /api/admin/admins
+ */
+public function storeAdmin(Request $request, array $payload): void {
+    $name     = trim($request->input('name', ''));
+    $email    = trim($request->input('email', ''));
+    $password = trim($request->input('password', ''));
+
+    if (!$name || !$email || !$password) {
+        Response::error('Nombre, email y contraseña son requeridos');
+    }
+
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        Response::error('Email inválido');
+    }
+
+    $db   = Database::connect();
+    $stmt = $db->prepare("SELECT id FROM users WHERE email = ?");
+    $stmt->execute([$email]);
+    if ($stmt->fetch()) {
+        Response::error('El email ya está registrado');
+    }
+
+    $hash = password_hash($password, PASSWORD_BCRYPT);
+    $stmt = $db->prepare(
+        "INSERT INTO users (name, email, password, role, group_type) VALUES (?, ?, ?, 'admin', 'experimental')"
+    );
+    $stmt->execute([$name, $email, $hash]);
+
+    Response::success(['id' => (int)$db->lastInsertId()], 'Administrador creado', 201);
+}
+
+/**
+ * PUT /api/admin/admins/{id}
+ */
+public function updateAdmin(Request $request, array $payload, string $id): void {
+    $name     = trim($request->input('name', ''));
+    $email    = trim($request->input('email', ''));
+    $password = trim($request->input('password', ''));
+
+    if (!$name || !$email) {
+        Response::error('Nombre y email son requeridos');
+    }
+
+    $db   = Database::connect();
+    $stmt = $db->prepare("SELECT id FROM users WHERE email = ? AND id != ?");
+    $stmt->execute([$email, (int)$id]);
+    if ($stmt->fetch()) {
+        Response::error('El email ya está en uso');
+    }
+
+    if ($password) {
+        $hash = password_hash($password, PASSWORD_BCRYPT);
+        $db->prepare("UPDATE users SET name = ?, email = ?, password = ? WHERE id = ? AND role = 'admin'")
+           ->execute([$name, $email, $hash, (int)$id]);
+    } else {
+        $db->prepare("UPDATE users SET name = ?, email = ? WHERE id = ? AND role = 'admin'")
+           ->execute([$name, $email, (int)$id]);
+    }
+
+    Response::success(null, 'Administrador actualizado');
+}
+
+/**
+ * DELETE /api/admin/admins/{id}
+ */
+public function destroyAdmin(Request $request, array $payload, string $id): void {
+    if ((int)$payload['sub'] === (int)$id) {
+        Response::error('No puedes eliminarte a ti mismo');
+    }
+
+    $db = Database::connect();
+    $db->prepare("DELETE FROM users WHERE id = ? AND role = 'admin'")->execute([(int)$id]);
+    Response::success(null, 'Administrador eliminado');
+}
 }
