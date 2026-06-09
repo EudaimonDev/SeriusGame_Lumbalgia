@@ -10,7 +10,34 @@
     "reports": "Reportes",
     "ranking": "Ranking",
     "admin": "Administrador",
-    "student": "Estudiante"
+    "student": "Estudiante",
+    "admins": "Admins"
+  },
+  "admins": {
+    "title": "Administradores",
+    "btn_new": "+ Nuevo admin",
+    "saved_create": "Administrador creado",
+    "saved_update": "Administrador actualizado",
+    "form_title_new": "Nuevo administrador",
+    "form_title_edit": "Editar administrador",
+    "label_name": "Nombre",
+    "placeholder_name": "Nombre completo",
+    "label_email": "Email",
+    "placeholder_email": "correo@ejemplo.com",
+    "label_password": "Contraseña",
+    "label_password_edit": "(dejar vacío para no cambiar)",
+    "placeholder_password": "Mínimo 6 caracteres",
+    "btn_saving": "Guardando...",
+    "btn_create": "Crear",
+    "btn_update": "Actualizar",
+    "btn_cancel": "Cancelar",
+    "no_admins": "No hay administradores",
+    "col_name": "Nombre",
+    "col_email": "Email",
+    "col_created": "Creado",
+    "col_actions": "Acciones",
+    "btn_edit": "Editar",
+    "btn_delete": "Eliminar"
   },
   "login": {
     "badge": "JUEGO EDUCATIVO",
@@ -162,7 +189,9 @@
   "col_code": "Código",
   "col_students": "Estudiantes",
   "exp": "Exp.",
-  "control": "Control"
+  "control": "Control",
+  "card_admins": "Administradores",
+  "card_admins_sub": "Gestionar cuentas de administradores"
 },
 "questions": {
   "title": "Banco de preguntas",

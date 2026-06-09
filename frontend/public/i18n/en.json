@@ -10,7 +10,8 @@
     "reports": "Reports",
     "ranking": "Ranking",
     "admin": "Administrator",
-    "student": "Student"
+    "student": "Student",
+    "admins": "Admins"
   },
   "admin": {
   "title": "Control Panel",
@@ -26,6 +27,32 @@
   "btn_send": "Send new password",
   "btn_back": "← Back"
 },
+"admins": {
+    "title": "Administrators",
+    "btn_new": "+ New admin",
+    "saved_create": "Administrator created",
+    "saved_update": "Administrator updated",
+    "form_title_new": "New administrator",
+    "form_title_edit": "Edit administrator",
+    "label_name": "Name",
+    "placeholder_name": "Full name",
+    "label_email": "Email",
+    "placeholder_email": "email@example.com",
+    "label_password": "Password",
+    "label_password_edit": "(leave empty to keep current)",
+    "placeholder_password": "Minimum 6 characters",
+    "btn_saving": "Saving...",
+    "btn_create": "Create",
+    "btn_update": "Update",
+    "btn_cancel": "Cancel",
+    "no_admins": "No administrators found",
+    "col_name": "Name",
+    "col_email": "Email",
+    "col_created": "Created",
+    "col_actions": "Actions",
+    "btn_edit": "Edit",
+    "btn_delete": "Delete"
+  },
   "login": {
     "badge": "EDUCATIONAL GAME",
     "title": "Mission:",
@@ -162,7 +189,9 @@
   "col_code": "Code",
   "col_students": "Students",
   "exp": "Exp.",
-  "control": "Control"
+  "control": "Control",
+  "card_admins": "Administrators",
+  "card_admins_sub": "Manage administrator accounts"
 },
 "questions": {
   "title": "Question bank",

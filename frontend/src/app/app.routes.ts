@@ -105,6 +105,12 @@ export const routes: Routes = [
   loadComponent: () => import('./modules/admin/rooms/rooms.component')
     .then(m => m.RoomsComponent)
 },
+{
+  path: 'admin/admins',
+  canActivate: [authGuard, adminGuard],
+  loadComponent: () => import('./modules/admin/admins/admins.component')
+    .then(m => m.AdminsComponent)
+},
 
   // ── Fallback ──────────────────────────────────────────
   { path: '**', redirectTo: 'login' }

@@ -1,0 +1,99 @@
+<div class="admin-body">
+
+  <div class="admin-toolbar">
+    <h2>{{ 'admins.title' | transloco }}</h2>
+    <button class="btn-sm primary" (click)="openCreate()">
+      {{ 'admins.btn_new' | transloco }}
+    </button>
+  </div>
+
+  @if (saved()) {
+    <div class="auth-alert auth-alert--success">
+      ✓ {{ editingId() ? ('admins.saved_update' | transloco) : ('admins.saved_create' | transloco) }}
+    </div>
+  }
+
+  @if (showForm()) {
+    <form [formGroup]="form" (ngSubmit)="save()" class="crud-panel">
+      <p class="panel-title">
+        {{ editingId() ? ('admins.form_title_edit' | transloco) : ('admins.form_title_new' | transloco) }}
+      </p>
+
+      @if (error()) {
+        <div class="auth-alert">{{ error() }}</div>
+      }
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+        <div class="form-group">
+          <label>{{ 'admins.label_name' | transloco }}</label>
+          <input type="text" formControlName="name"
+                 [placeholder]="'admins.placeholder_name' | transloco">
+        </div>
+        <div class="form-group">
+          <label>{{ 'admins.label_email' | transloco }}</label>
+          <input type="email" formControlName="email"
+                 [placeholder]="'admins.placeholder_email' | transloco">
+        </div>
+        <div class="form-group" style="grid-column:1/-1">
+          <label>
+            {{ 'admins.label_password' | transloco }}
+            @if (editingId()) {
+              <span style="font-weight:400;color:var(--muted)">
+                {{ 'admins.label_password_edit' | transloco }}
+              </span>
+            }
+          </label>
+          <input type="password" formControlName="password"
+                 [placeholder]="'admins.placeholder_password' | transloco">
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px">
+        <button type="submit" class="btn-sm primary" [disabled]="form.invalid || loading()">
+          {{ loading() ? ('admins.btn_saving' | transloco) :
+             editingId() ? ('admins.btn_update' | transloco) : ('admins.btn_create' | transloco) }}
+        </button>
+        <button type="button" class="btn-sm outline" (click)="showForm.set(false)">
+          {{ 'admins.btn_cancel' | transloco }}
+        </button>
+      </div>
+    </form>
+  }
+
+  @if (admins().length === 0) {
+    <div class="loading-center">{{ 'admins.no_admins' | transloco }}</div>
+  } @else {
+    <table class="questions-table">
+      <thead>
+        <tr>
+          <th>{{ 'admins.col_name'    | transloco }}</th>
+          <th>{{ 'admins.col_email'   | transloco }}</th>
+          <th>{{ 'admins.col_created' | transloco }}</th>
+          <th>{{ 'admins.col_actions' | transloco }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (admin of admins(); track admin.id) {
+          <tr>
+            <td style="font-weight:500">{{ admin.name }}</td>
+            <td>{{ admin.email }}</td>
+            <td style="font-size:12px;color:var(--muted)">
+              {{ admin.created_at?.substring(0,10) }}
+            </td>
+            <td>
+              <div style="display:flex;gap:6px">
+                <button class="btn-sm outline" (click)="openEdit(admin)">
+                  {{ 'admins.btn_edit' | transloco }}
+                </button>
+                <button class="btn-sm danger" (click)="delete(admin.id)">
+                  {{ 'admins.btn_delete' | transloco }}
+                </button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+
+</div>

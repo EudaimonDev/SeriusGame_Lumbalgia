@@ -16,6 +16,7 @@
       <a routerLink="/admin/rooms"     routerLinkActive="active" class="nav-link--hide-mobile">{{ 'nav.rooms'     | transloco }}</a>
       <a routerLink="/admin/config"    routerLinkActive="active" class="nav-link--hide-mobile">{{ 'nav.config'    | transloco }}</a>
       <a routerLink="/admin/reports"   routerLinkActive="active" class="nav-link--hide-mobile">{{ 'nav.reports'   | transloco }}</a>
+      <a routerLink="/admin/admins" routerLinkActive="active" class="nav-link--hide-mobile">👤 {{ 'nav.admins' | transloco }}</a>
     }
 
     <!-- Avatar con dropdown -->
@@ -66,6 +67,9 @@
             </button>
             <button class="nav-dropdown__item" routerLink="/admin/reports" (click)="showDropdown.set(false)">
               📊 {{ 'nav.reports' | transloco }}
+            </button>
+            <button class="nav-dropdown__item" routerLink="/admin/admins" (click)="showDropdown.set(false)">
+              👤 {{ 'nav.admins' | transloco }}
             </button>
           }
           <div class="nav-dropdown__divider"></div>
