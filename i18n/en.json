@@ -129,7 +129,8 @@
     "my_results": "My results",
     "msg_excellent": "Excellent! You have great knowledge about lumbalgia.",
     "msg_good": "Good job! Keep practicing to improve your score.",
-    "msg_keep": "You need to review the topics. Don't give up!"
+    "msg_keep": "You need to review the topics. Don't give up!",
+    "my_profile": "My profile"
   },
   "ranking": {
     "title": "RANKING",
@@ -248,7 +249,8 @@
   "crud_title_edit": "Edit question",
   "label_correct_answer": "Correct answer",
   "label_question_text": "Question text",
-  "label_feedback": "Educational feedback"
+  "label_feedback": "Educational feedback",
+  "of": "of"
 },
 "rooms": {
   "title": "Room Management",

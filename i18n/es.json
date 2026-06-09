@@ -129,7 +129,8 @@
     "my_results": "Mis resultados",
     "msg_excellent": "¡Excelente! Tienes un gran conocimiento sobre lumbalgia.",
     "msg_good": "¡Bien! Sigue practicando para mejorar tu puntaje.",
-    "msg_keep": "Necesitas repasar los temas. ¡No te rindas!"
+    "msg_keep": "Necesitas repasar los temas. ¡No te rindas!",
+    "my_profile": "Mi perfil"
   },
   "ranking": {
     "title": "RANKING",
@@ -248,7 +249,8 @@
   "crud_title_edit": "Editar pregunta",
   "label_correct_answer": "Respuesta correcta",
   "label_question_text": "Enunciado de la pregunta",
-  "label_feedback": "Retroalimentación educativa"
+  "label_feedback": "Retroalimentación educativa",
+  "of": "de"
 },
 "rooms": {
   "title": "Gestión de Salas",
